@@ -1,2 +1,0 @@
-# SimplStundenliste
-Stundenaufzeichungs App
