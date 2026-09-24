@@ -4,6 +4,7 @@
 :root {
     --sat: env(safe-area-inset-top, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
+    --top-padding: 0px;
 
 
     /* Standard (Light Mode Farben) */
@@ -222,4 +223,9 @@ th, td { text-align: left; padding: 9px 7px; border-bottom: 1px solid var(--bord
     h1 { font-size: 20px; }
     .headlogo { height: 38px; }
     .actions button, .actions .button { flex: 1; }
+}
+
+/* Spezifische Styles NUR für die Android App */
+body.is-android-app {
+    --top-padding: 50px;
 }

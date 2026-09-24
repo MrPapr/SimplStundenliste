@@ -1,3 +1,9 @@
+if (typeof window !== 'undefined' && window.AndroidDownload) {
+    document.addEventListener('DOMContentLoaded', () => {
+        document.body.classList.add('is-android-app');
+    });
+}
+
 const KEY='simplicissimus-offline-v57';
 let S={
     name:'',
