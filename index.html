@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#b91c1c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Arbeitszeiten Simplicissimus">
+    <title>Arbeitszeiten Simplicissimus</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* CSS-Variablen & Dark Mode */
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --top-padding: max(40px, var(--sat));
+
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-muted: #64748b;
+            --primary: #2563eb;
+            --primary-bg: #eff6ff;
+            --header-bg: #ffffff;
+            --header-text: #000000;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #0f172a;
+                --bg-card: #1e293b;
+                --border-color: #334155;
+                --text-primary: #f8fafc;
+                --text-muted: #94a3b8;
+                --primary: #3b82f6;
+                --primary-bg: #1e3a8a;
+                --header-bg: #1e293b;
+                --header-text: #ffffff;
+            }
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+        }
+
+        /* Schwarzer Balken exakt hinter der Statusleiste */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--top-padding);
+            background-color: #000000;
+            z-index: 999;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+            background-color: var(--bg-body);
+        }
+
+        header {
+            padding-top: var(--top-padding);
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        main {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: max(20px, var(--sab));
+            background-color: var(--bg-body);
+        }
+
+        #setup {
+            height: 100vh;
+            overflow-y: auto;
+            padding-top: var(--top-padding);
+            box-sizing: border-box;
+            background-color: var(--bg-body);
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Kompakte KPI-Karten für die Monats-Auswertung */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0 20px 0;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-card .label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .stat-card .value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Farbindikatoren für Differenz & Saldo */
+        .val-positive { color: #16a34a !important; }
+        .val-negative { color: #dc2626 !important; }
+        .val-neutral  { color: var(--text-muted) !important; }
+
+        /* Monats-Fortschrittsbalken */
+        .progress-container {
+            margin: 15px 0 5px 0;
+            background-color: var(--border-color);
+            border-radius: 8px;
+            height: 12px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #2563eb, #16a34a);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* Status-Auswahl Buttons (Arbeit, Urlaub, Krank, ZA) */
+        .type-selector {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .type-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .type-btn.active {
+            background-color: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        /* Schnellschicht-Buttons */
+        .quick-shifts {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+
+        .shift-btn {
+            background: var(--primary-bg);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Status Badges in Tabellen */
+        .badge-urlaub { background: #fef3c7; color: #d97706; }
+        .badge-krank  { background: #fee2e2; color: #dc2626; }
+        .badge-za     { background: #e0e7ff; color: #4338ca; }
+    </style>
+</head>
+<body>
+
+<div id="setup" class="screen">
+    <div class="card login">
+        <img src="simp-logo.png" class="logo" alt="Logo">
+        <h1>Arbeitszeiten Simplicissimus</h1>
+        <p class="muted">Offline-Arbeitszeiterfassung</p>
+        <span class="badge">Version 5.7 Offline</span>
+        <h2>Dieses Gerät einrichten</h2>
+        <label for="setupName">Mein Name</label>
+        <input id="setupName" placeholder="z. B. Max Mustermann" autocomplete="name">
+        <p class="hint">Der Name wird nur auf diesem Gerät gespeichert und erscheint auf deinen PDFs.</p>
+        <button id="setupBtn" class="primary wide">App einrichten</button>
+    </div>
+</div>
+
+<div id="app" hidden>
+    <header>
+        <img src="simp-logo.png" class="headlogo" alt="Logo">
+        <div>
+            <strong>Arbeitszeiten Simplicissimus</strong>
+            <small id="who"></small>
+        </div>
+    </header>
+
+    <div class="status">● Offline-App · Daten nur auf diesem Gerät</div>
+
+    <nav>
+        <button data-v="day" class="active">Tag</button>
+        <button data-v="week">Woche</button>
+        <button data-v="month">Monat</button>
+        <button data-v="settings">Einstellungen</button>
+    </nav>
+
+    <main>
+        <section id="day" class="view">
+            <div class="card">
+                <label for="date">Datum</label>
+                <input id="date" type="date">
+
+                <label style="margin-top: 10px;">Art des Eintrags</label>
+                <div class="type-selector">
+                    <button type="button" class="type-btn active" data-type="work" onclick="setType('work')">Arbeit</button>
+                    <button type="button" class="type-btn" data-type="vacation" onclick="setType('vacation')">Urlaub</button>
+                    <button type="button" class="type-btn" data-type="sick" onclick="setType('sick')">Krank</button>
+                    <button type="button" class="type-btn" data-type="za" onclick="setType('za')">ZA</button>
+                </div>
+
+                <div id="timeInputFields">
+                    <!-- Hier werden die neuen Schnellschichten (Normal, Doppel, Nachmittag) gerendert -->
+                    <div id="quickShiftsContainer" class="quick-shifts"></div>
+
+                    <div class="grid">
+                        <div>
+                            <label>Beginn</label>
+                            <div class="time-pick">
+                                <select id="startHour" aria-label="Beginn Stunde"></select>
+                                <span>:</span>
+                                <select id="startMinute" aria-label="Beginn Minute"></select>
+                            </div>
+                        </div>
+                        <div>
+                            <label>Ende</label>
+                            <div class="time-pick">
+                                <select id="endHour" aria-label="Ende Stunde"></select>
+                                <span>:</span>
+                                <select id="endMinute" aria-label="Ende Minute"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions" style="margin-top: 15px;">
+                    <button id="save" class="primary">Eintrag speichern</button>
+                    <button id="del" class="danger">Löschen</button>
+                </div>
+                <div id="daySum" class="summary"></div>
+            </div>
+
+            <div class="card">
+                <h2>Letzte 10 Einträge</h2>
+                <div class="table">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Tag</th>
+                            <th>Beginn</th>
+                            <th>Ende</th>
+                            <th>Stunden</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody id="recent"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="week" class="view" hidden>
+            <div class="card">
+                <label for="weekDate">Woche mit Datum</label>
+                <input id="weekDate" type="date">
+                <h2 id="weekTotal"></h2>
+                <div class="table">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Tag</th>
+                            <th>Beginn</th>
+                            <th>Ende</th>
+                            <th>Stunden</th>
+                        </tr>
+                        </thead>
+                        <tbody id="weekRows"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="month" class="view" hidden>
+            <div class="card">
+                <div class="between">
+                    <div>
+                        <label for="monthPick">Monat</label>
+                        <input id="monthPick" type="month">
+                    </div>
+                    <div class="actions">
+                        <button id="pdf" class="primary">PDF erstellen</button>
+                        <button id="share">PDF teilen</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <label for="monthWeeklyHours">Wochenstunden für diesen Monat</label>
+                    <input id="monthWeeklyHours" type="number" step="0.5" min="0" value="20">
+                </div>
+
+                <h2 id="monthTotal"></h2>
+
+                <div class="table">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Tag</th>
+                            <th>Beginn</th>
+                            <th>Ende</th>
+                            <th>Stunden</th>
+                        </tr>
+                        </thead>
+                        <tbody id="monthRows"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="settings" class="view" hidden>
+            <div class="card">
+                <h2>Persönliche Einstellungen</h2>
+                <label for="name">Name für PDF</label>
+                <input id="name">
+
+                <label for="defaultWeeklyHours">Standard-Wochenstunden</label>
+                <input id="defaultWeeklyHours" type="number" step="0.5" min="0" value="20">
+
+                <label for="initialBalance">Start-Saldo / Korrektur (in Stunden)</label>
+                <input id="initialBalance" type="number" step="0.25" placeholder="z. B. 12.5 oder -5">
+                <p class="hint">Hier kannst du Plus- oder Minusstunden aus der Zeit vor der App eintragen (z. B. +10 oder -4.5).</p>
+
+                <h3 style="margin-top: 20px; font-size: 1rem;">Schicht-Schnellauswahl anpassen</h3>
+                <div id="quickShiftsSettings"></div>
+
+                <button id="settingsSave" class="primary wide" style="margin-top: 15px;">Einstellungen speichern</button>
+            </div>
+
+            <div class="card">
+                <h2>Datensicherung</h2>
+                <p class="hint">Da alles nur auf diesem Gerät gespeichert wird, empfehlen wir gelegentlich eine Sicherung.</p>
+                <div class="actions">
+                    <button id="backup">Sicherung exportieren</button>
+                    <label class="button">Sicherung importieren<input id="restore" type="file" accept="application/json" hidden></label>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
