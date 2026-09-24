@@ -185,11 +185,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="settings-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
                             <label>Android App</label>
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                                <span style="font-size: 0.9rem; color: var(--text-muted);">Aktuelle APK herunterladen</span>
-                                <a id="apkDownloadLink" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
+                                <button id="apkDownloadLink" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
                                    📥 APK laden
-                                </a>
+                                </button>
+                                <button id="updateBtn" class="btn" title="App-Cache leeren & aktualisieren">🔄 Update / Cache leeren</button>
+
                             </div>
+
                         </div>
 
                         <div class="card">
@@ -1203,6 +1205,31 @@ function initApp(){
             e.target.value = '';
         }
     };
+    let updateBtn = $('#updateBtn');
+    if (updateBtn) {
+        updateBtn.onclick = async () => {
+            if (confirm('Möchtest du den App-Cache leeren und die neueste Version laden? Deine gespeicherten Arbeitszeiten bleiben erhalten.')) {
+                try {
+                    if ('serviceWorker' in navigator) {
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        for (let registration of registrations) {
+                            await registration.unregister();
+                        }
+                    }
+                    if ('caches' in window) {
+                        const keys = await caches.keys();
+                        for (let key of keys) {
+                            await caches.delete(key);
+                        }
+                    }
+                    window.location.reload(true);
+                } catch (err) {
+                    console.error('Fehler beim Leeren des Caches:', err);
+                    window.location.reload();
+                }
+            }
+        };
+    }
 }
 
 function openApp(){
