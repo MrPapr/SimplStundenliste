@@ -71,6 +71,10 @@ document.addEventListener("DOMContentLoaded", () => {
                                     </div>
                                 </div>
                             </div>
+                            <div style="margin-top: 15px;">
+                                <label for="entryNote">Notiz (optional)</label>
+                                <input id="entryNote" type="text" placeholder="z. B. Homeoffice">
+                            </div>
 
                             <div class="actions" style="margin-top: 15px;">
                                 <button id="save" class="primary">Eintrag speichern</button>
@@ -160,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     <section id="schedule" class="view" hidden>
                         <div class="card">
-                            <h2>🎭 Theater-Spielplan</h2>
+                            <h2>🎭 Simpl-Spielplan</h2>
 
                             <!-- Monats-Navigation -->
                             <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0; background: var(--bg-secondary, #2a2a2a); color: var(--text-color, #ffffff); padding: 8px 12px; border-radius: 8px;">
@@ -295,11 +299,36 @@ function hasHours(e){
     return e.start && e.end && hours(e.start, e.end) > 0;
 }
 
-function fillTimeSelects(){
+
+function fillTimeSelects() {
+    const pad = (n) => String(n).padStart(2, '0');
+
     let hs = '<option value="">--</option>' + Array.from({length: 24}, (_, i) => `<option value="${pad(i)}">${pad(i)}</option>`).join(''),
         ms = '<option value="">--</option>' + ['00', '15', '30', '45'].map(x => `<option value="${x}">${x}</option>`).join('');
+
+    // Selects füllen
     ['startHour', 'endHour'].forEach(id => { if($('#'+id)) $('#'+id).innerHTML = hs; });
     ['startMinute', 'endMinute'].forEach(id => { if($('#'+id)) $('#'+id).innerHTML = ms; });
+
+    // Automatisch "00" bei den Minuten setzen, wenn eine Stunde gewählt wird
+    const pairs = [
+        { hour: 'startHour', minute: 'startMinute' },
+        { hour: 'endHour', minute: 'endMinute' }
+    ];
+
+    pairs.forEach(pair => {
+        const hourEl = document.getElementById(pair.hour) || $('#' + pair.hour);
+        const minEl = document.getElementById(pair.minute) || $('#' + pair.minute);
+
+        if (hourEl && minEl) {
+            hourEl.addEventListener('change', () => {
+                // Wenn eine Stunde gewählt wurde und die Minute noch leer ist
+                if (hourEl.value !== '' && minEl.value === '') {
+                    minEl.value = '00';
+                }
+            });
+        }
+    });
 }
 
 function setTime(prefix, t){
@@ -477,6 +506,11 @@ function render(){
     setTime('start', e?.start || '');
     setTime('end', e?.end || '');
 
+    // NEU: Notizfeld für das gewählte Datum aktualisieren
+    if($('#entryNote')) {
+        $('#entryNote').value = e?.note || '';
+    }
+
     renderQuickShifts();
     renderQuickShiftsSettings();
 
@@ -494,6 +528,12 @@ function editEntry(ds){
     setType(e?.type || 'work');
     setTime('start', e?.start || '');
     setTime('end', e?.end || '');
+
+    // NEU: Notiz beim Bearbeiten in das Feld laden
+    if($('#entryNote')) {
+        $('#entryNote').value = e?.note || '';
+    }
+
     document.querySelectorAll('nav button').forEach(x => x.classList.toggle('active', x.dataset.v === 'day'));
     document.querySelectorAll('.view').forEach(v => v.hidden = v.id !== 'day');
     let c = $('#day .card');
@@ -602,19 +642,22 @@ function pdfBlob(){
             isSun = d.getDay() === 0,
             h = hmap[ds];
 
+        // NEU: Notiz für die PDF-Zeile aufbereiten
+        let noteCol = e?.note ? `  ${e.note}` : '';
+
         if(hasHours(e)){
             if (e.type === 'vacation') {
-                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   Urlaub   ${ht(getWeightedHours(ds, e))}`);
+                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   Urlaub   ${ht(getWeightedHours(ds, e))}${noteCol}`);
                 totalIstHours += getWeightedHours(ds, e);
             } else if (e.type === 'sick') {
-                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   Krank    ${ht(getWeightedHours(ds, e))}`);
+                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   Krank    ${ht(getWeightedHours(ds, e))}${noteCol}`);
                 totalIstHours += getWeightedHours(ds, e);
             } else if (e.type === 'za') {
-                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   Zeitausgleich   0.00 h`);
+                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   Zeitausgleich   0.00 h${noteCol}`);
             } else {
                 let base = hours(e.start, e.end);
                 totalIstHours += base;
-                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   ${e.start} - ${e.end}   ${ht(base)}`);
+                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   ${e.start} - ${e.end}   ${ht(base)}${noteCol}`);
 
                 if(isSun || h){
                     let label = [];
@@ -622,7 +665,8 @@ function pdfBlob(){
                     if(h) label.push(h);
 
                     totalSpecialHours += base;
-                    specialLines.push(`${wd(ds)} ${pad(i)}.${pad(mo)}.${y}   ${e.start} - ${e.end} (${label.join(' / ')}): ${ht(base)}`);
+                    let specialNote = e?.note ? ` | Notiz: ${e.note}` : '';
+                    specialLines.push(`${wd(ds)} ${pad(i)}.${pad(mo)}.${y}   ${e.start} - ${e.end} (${label.join(' / ')}): ${ht(base)}${specialNote}`);
                 }
             }
         }
@@ -745,40 +789,9 @@ function parseDateString(dateStr) {
     return isNaN(fallback.getTime()) ? null : fallback;
 }
 
-function formatDisplayDate(dateStr) {
-    let itemDate = parseDateString(dateStr);
-    if (!itemDate || isNaN(itemDate)) return dateStr;
-
-    let day = itemDate.getUTCDate();       // Nutzt UTC gegen Zeitzonen-Fehler
-    let month = itemDate.getUTCMonth() + 1; // Nutzt UTC gegen Zeitzonen-Fehler
-    let year = itemDate.getUTCFullYear();
-
-    return `${day}.${month}.${year}`;
-}
-
 function changeMonth(direction) {
     S.currentMonthOffset += direction;
     renderScheduleSection();
-}
-
-function parseDateString(dateStr) {
-    if (!dateStr) return null;
-    let cleanStr = dateStr.toString().trim();
-
-    // Prüfen, ob das Datum Punkte enthält (Format: DD.MM.YYYY)
-    if (cleanStr.includes('.')) {
-        let parts = cleanStr.split('.');
-        if (parts.length === 3) {
-            let day = parseInt(parts[0], 10);
-            let month = parseInt(parts[1], 10) - 1; // WICHTIG: JavaScript-Monate beginnen bei 0 (Januar = 0, Mai = 4)
-            let year = parseInt(parts[2], 10);
-
-            return new Date(year, month, day);
-        }
-    }
-
-    // Fallback falls ein anderes Format ankommt
-    return new Date(cleanStr);
 }
 
 // Hilfsfunktion: Ermittelt die Kalenderwoche, um Wochenwechsel zu erkennen
@@ -790,85 +803,6 @@ function getWeekNumber(d) {
     return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
 }
 
-// Hilfsfunktion: Formatiert das Datum für die Anzeige ohne führende Nullen (z.B. 1.9.2026)
-function formatDisplayDate(dateStr) {
-    let itemDate = parseDateString(dateStr);
-    if (!itemDate || isNaN(itemDate)) return dateStr;
-
-    let day = itemDate.getDate();        // z.B. 1 (ohne führende Null)
-    let month = itemDate.getMonth() + 1; // z.B. 9 (ohne führende Null)
-    let year = itemDate.getFullYear();   // z.B. 2026
-
-    return `${day}.${month}.${year}`;
-}
-
-function renderScheduleSection() {
-    let container = $('#scheduleListContainer');
-    let label = $('#currentMonthLabel');
-    if (!container) return;
-
-    if (!S.theaterSchedule || S.theaterSchedule.length === 0) {
-        if(label) label.textContent = "Kein Spielplan";
-        container.innerHTML = `<div style="padding: 10px; color: var(--text-muted);">Kein Spielplan verfügbar.</div>`;
-        return;
-    }
-
-    // Ziel-Monat berechnen basierend auf dem Offset
-    let now = new Date();
-    let targetDate = new Date(now.getFullYear(), now.getMonth() + S.currentMonthOffset, 1);
-    let year = targetDate.getFullYear();
-    let month = targetDate.getMonth();
-
-    // Monatslabel aktualisieren
-    if (label) {
-        let monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
-        label.textContent = `${monthNames[month]} ${year}`;
-    }
-
-    // Termine für diesen Monat filtern
-    let filteredSchedule = S.theaterSchedule.filter(item => {
-        let itemDate = parseDateString(item.date);
-        return itemDate && itemDate.getFullYear() === year && itemDate.getMonth() === month;
-    });
-
-    // Chronologisch nach Datum sortieren
-    filteredSchedule.sort((a, b) => parseDateString(a.date) - parseDateString(b.date));
-
-    if (filteredSchedule.length === 0) {
-        container.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-muted);">Keine Vorstellungen in diesem Monat.</div>`;
-        return;
-    }
-
-    // Tabelle aufbauen
-    let html = `<table style="width: 100%; border-collapse: collapse;">`;
-    let lastWeekNo = null;
-
-    filteredSchedule.forEach((item, index) => {
-        let itemDate = parseDateString(item.date);
-        let currentWeekNo = itemDate ? getWeekNumber(itemDate) : null;
-        let weekdayName = itemDate ? itemDate.toLocaleDateString('de-DE', { weekday: 'short' }) : '';
-
-        // DEUTLICHER WOCHENABSTAND: Größerer Abstand und kräftigere Trennlinie
-        if (index > 0 && currentWeekNo !== lastWeekNo) {
-            html += `<tr><td colspan="2" style="padding: 18px 0 8px 0;">
-                <div style="border-top: 2px solid var(--border-color, #666);"></div>
-            </td></tr>`;
-        }
-        lastWeekNo = currentWeekNo;
-
-        html += `<tr style="border-bottom: 1px solid var(--border-color);">
-            <td style="padding: 10px 8px; width: 35%; vertical-align: top;">
-                <div style="font-weight: bold;">${weekdayName}, ${formatDisplayDate(item.date)}</div>
-            </td>
-            <td style="padding: 10px 8px; vertical-align: top;">
-                <strong>${item.title || ''}</strong><br>
-                <small style="color: var(--text-muted);">${item.time || ''}</small>
-            </td>
-        </tr>`;
-    });
-    html += `</table>`;
-    container.innerHTML = html;
-}
 
 
 
@@ -1023,18 +957,26 @@ function initApp(){
         };
     }
 
-    $('#save').onclick = () => {
-        let dateVal = $('#date').value;
-        if (currentType === 'work') {
-            let a = getTime('start'), b = getTime('end');
-            if(!a || !b) return alert('Bitte Beginn und Ende vollständig auswählen.');
-            S.entries[dateVal] = { start: a, end: b, type: 'work' };
-        } else {
-            S.entries[dateVal] = { type: currentType };
-        }
-        save();
-        render();
-    };
+            $('#save').onclick = () => {
+                let dateVal = $('#date').value;
+                let noteVal = $('#entryNote')?.value.trim() || ''; // NEU: Notiz auslesen
+
+                let entryData = {
+                    type: currentType,
+                    note: noteVal // NEU: Notiz im Eintrag speichern (auch leer, damit Änderungen überschrieben werden)
+                };
+
+                if (currentType === 'work') {
+                    let a = getTime('start'), b = getTime('end');
+                    if(!a || !b) return alert('Bitte Beginn und Ende vollständig auswählen.');
+                    entryData.start = a;
+                    entryData.end = b;
+                }
+
+                S.entries[dateVal] = entryData;
+                save();
+                render();
+            };
 
     $('#del').onclick = () => {
         delete S.entries[$('#date').value];
