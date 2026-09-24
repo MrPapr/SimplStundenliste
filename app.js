@@ -715,14 +715,24 @@ function changeMonth(direction) {
     renderScheduleSection();
 }
 
-// Hilfsfunktion: Wandelt das Datumsformat (DD.MM.YYYY) in ein Date-Objekt um
 function parseDateString(dateStr) {
     if (!dateStr) return null;
-    if (dateStr.includes('.')) {
-        let parts = dateStr.split('.');
-        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+    let cleanStr = dateStr.toString().trim();
+
+    // Prüfen, ob das Datum Punkte enthält (Format: DD.MM.YYYY)
+    if (cleanStr.includes('.')) {
+        let parts = cleanStr.split('.');
+        if (parts.length === 3) {
+            let day = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10) - 1; // WICHTIG: JavaScript-Monate beginnen bei 0 (Januar = 0, Mai = 4)
+            let year = parseInt(parts[2], 10);
+
+            return new Date(year, month, day);
+        }
     }
-    return new Date(dateStr);
+
+    // Fallback falls ein anderes Format ankommt
+    return new Date(cleanStr);
 }
 
 // Hilfsfunktion: Ermittelt die Kalenderwoche, um Wochenwechsel zu erkennen
