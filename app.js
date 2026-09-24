@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.2</div>
+                <div class="status">● Offline-App · V1.0</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -157,6 +157,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     </section>
 
                     <section id="settings" class="view" hidden>
+                    <div class="settings-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                        <label>Android App</label>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                            <span style="font-size: 0.9rem; color: var(--text-muted);">Aktuelle APK herunterladen</span>
+                            <!-- Die ID "apkDownloadLink" ist wichtig, damit das JavaScript den Link automatisch einsetzt -->
+                            <a id="apkDownloadLink" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
+                               📥 APK laden
+                            </a>
+                        </div>
+                    </div>
                         <div class="card">
                             <h2>Persönliche Einstellungen</h2>
                             <label for="name">Name für PDF</label>
@@ -839,7 +849,13 @@ function openApp(){
     if($('#name')) $('#name').value = S.name;
     if($('#defaultWeeklyHours')) $('#defaultWeeklyHours').value = S.defaultWeeklyHours || 20;
     if($('#initialBalance')) $('#initialBalance').value = S.initialBalance || 0;
+    let apkLink = $('#apkDownloadLink');
+        if(apkLink) {
+            apkLink.href = "https://github.com/MrPapr/SimplStundenliste/releases/latest";
+        }
     render();
+
+
 }
 
 // Startet die App, sobald das HTML komplett geladen ist
