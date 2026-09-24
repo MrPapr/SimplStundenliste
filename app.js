@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <button data-v="day" class="active">Tag</button>
                     <button data-v="week">Woche</button>
                     <button data-v="month">Monat</button>
+                    <button data-v="schedule">🎭 Spielplan</button>
                     <button data-v="settings">Einstellungen</button>
                 </nav>
 
@@ -85,9 +86,10 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <thead>
                                     <tr>
                                         <th>Tag</th>
-                                        <th>Beginn</th>
+                                        <th>Start</th>
                                         <th>Ende</th>
-                                        <th>Stunden</th>
+                                        <th>Std.</th>
+                                        <th>Edit</th>
                                         <th></th>
                                     </tr>
                                     </thead>
@@ -107,10 +109,10 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <thead>
                                     <tr>
                                         <th>Tag</th>
-                                        <th>Beginn</th>
+                                        <th>Start</th>
                                         <th>Ende</th>
-                                        <th>Stunden</th>
-                                        <th>Bearbeiten</th>
+                                        <th>Std.</th>
+                                        <th>Edit</th>
                                     </tr>
                                     </thead>
                                     <tbody id="weekRows"></tbody>
@@ -144,10 +146,10 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <thead>
                                     <tr>
                                         <th>Tag</th>
-                                        <th>Beginn</th>
+                                        <th>Start</th>
                                         <th>Ende</th>
-                                        <th>Stunden</th>
-                                        <th>Bearbeiten</th>
+                                        <th>Std.</th>
+                                        <th>Edit</th>
                                     </tr>
                                     </thead>
                                     <tbody id="monthRows"></tbody>
@@ -156,17 +158,30 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                     </section>
 
-                    <section id="settings" class="view" hidden>
-                    <div class="settings-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
-                        <label>Android App</label>
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                            <span style="font-size: 0.9rem; color: var(--text-muted);">Aktuelle APK herunterladen</span>
-                            <!-- Die ID "apkDownloadLink" ist wichtig, damit das JavaScript den Link automatisch einsetzt -->
-                            <a id="apkDownloadLink" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
-                               📥 APK laden
-                            </a>
+                    <!-- NEUE SECTION: Theater-Spielplan -->
+                    <section id="schedule" class="view" hidden>
+                        <div class="card">
+                            <h2>🎭 Theater-Spielplan</h2>
+                            <p class="hint" style="margin-bottom: 15px;">Aktueller Spielplan (wird automatisch synchronisiert)</p>
+                            <div class="table">
+                                <div id="scheduleListContainer" style="max-height: 70vh; overflow-y: auto;">
+                                    <span style="color: var(--text-muted);">Lade Spielplan...</span>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </section>
+
+                    <section id="settings" class="view" hidden>
+                        <div class="settings-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                            <label>Android App</label>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
+                                <span style="font-size: 0.9rem; color: var(--text-muted);">Aktuelle APK herunterladen</span>
+                                <a id="apkDownloadLink" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
+                                   📥 APK laden
+                                </a>
+                            </div>
+                        </div>
+
                         <div class="card">
                             <h2>Persönliche Einstellungen</h2>
                             <label for="name">Name für PDF</label>
@@ -204,7 +219,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // 2. Deine eigentliche App-Logik
-// Android-Download-Integration
 if (typeof window !== 'undefined' && window.AndroidDownload) {
     document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('is-android-app');
@@ -222,7 +236,8 @@ let S = {
     ],
     defaultWeeklyHours: 20,
     initialBalance: 0,
-    monthlyWeeklyHours: {}
+    monthlyWeeklyHours: {},
+    theaterSchedule: [] // Spielplan direkt im State abgesichert
 };
 
 let currentType = 'work'; // 'work', 'vacation', 'sick', 'za'
@@ -237,6 +252,7 @@ function load(){
         S = { ...S, ...data };
         if(!S.monthlyWeeklyHours) S.monthlyWeeklyHours = {};
         if(!S.defaultWeeklyHours) S.defaultWeeklyHours = 20;
+        if(!S.theaterSchedule) S.theaterSchedule = [];
         if(S.initialBalance === undefined) S.initialBalance = 0;
 
         if(!S.quickShifts || S.quickShifts.length === 0) {
@@ -370,8 +386,6 @@ function getCumulativeBalance(currentMonthKey){
     return balance;
 }
 
-// Zeilen-Generierung (Datum OHNE Jahr: z.B. "Mo 05.06.")
-// Zeilen-Generierung (Datum OHNE Jahr: z.B. "Mo 05.06.") mit Icon statt Text
 function entryRow(ds, e, editable = false){
     let hoursDisplay = '–';
     let d = parse(ds);
@@ -400,7 +414,7 @@ function entryRow(ds, e, editable = false){
         <td>${e?.start||'–'}</td>
         <td>${e?.end||'–'}</td>
         <td>${hoursDisplay}</td>
-        ${editable?`<td style="text-align: right;"><button class="edit-btn" data-edit="${ds}" title="Bearbeiten">✏️</button></td>`:''}
+        ${editable?`<td style="text-align: right;"><button class="edit-btn" data-edit="${ds}" title="Bearbeiten">⚙️</button></td>`:''}
     </tr>`;
 }
 
@@ -668,6 +682,41 @@ function filename(){
     return `Arbeitszeiten-${S.name.replace(/[^a-zA-Z0-9äöüÄÖÜß_-]+/g, '_')}-${$('#monthPick').value}.pdf`;
 }
 
+// 🎭 Theater-Spielplan Funktionen
+function fetchTheaterSchedule() {
+    const scheduleUrl = "https://raw.githubusercontent.com/MrPapr/SimplStundenliste/main/schedule.json";
+    renderScheduleSection(); // Offline-First: sofort lokale Daten anzeigen
+
+    fetch(scheduleUrl)
+        .then(res => res.json())
+        .then(data => {
+            S.theaterSchedule = data;
+            save();
+            renderScheduleSection();
+        })
+        .catch(() => console.log('Offline: Nutze lokalen Spielplan.'));
+}
+
+function renderScheduleSection() {
+    let container = $('#scheduleListContainer');
+    if(!container) return;
+
+    if(!S.theaterSchedule || S.theaterSchedule.length === 0) {
+        container.innerHTML = `<div style="padding: 10px; color: var(--text-muted);">Kein Spielplan verfügbar.</div>`;
+        return;
+    }
+
+    let html = `<table style="width: 100%; border-collapse: collapse;">`;
+    S.theaterSchedule.forEach(item => {
+        html += `<tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 8px; font-weight: bold; width: 35%;">${item.date || ''}</td>
+            <td style="padding: 8px;">${item.title || ''} <br><small style="color: var(--text-muted);">${item.time || ''}</small></td>
+        </tr>`;
+    });
+    html += `</table>`;
+    container.innerHTML = html;
+}
+
 function initApp(){
     load();
     fillTimeSelects();
@@ -686,11 +735,20 @@ function initApp(){
         openApp();
     };
 
+    // Navigation-Umschaltung inklusive Abfrage für den Spielplan-Tab
     document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
         document.querySelectorAll('nav button').forEach(x => x.classList.remove('active'));
         b.classList.add('active');
         document.querySelectorAll('.view').forEach(v => v.hidden = true);
-        $('#'+b.dataset.v).hidden = false;
+
+        let targetView = b.dataset.v;
+        $('#'+targetView).hidden = false;
+
+        // Wenn der User auf den Spielplan klickt -> Daten laden
+        if(targetView === 'schedule') {
+            fetchTheaterSchedule();
+        }
+
         render();
     });
 
@@ -801,7 +859,7 @@ function initApp(){
             a.href = URL.createObjectURL(blob);
             a.download = filename;
             a.click();
-            URL.revokeObjectURL(a.href);
+            URL.revokeObjectURL(a.exportPayload);
         }
     };
 
@@ -849,16 +907,11 @@ function openApp(){
     if($('#name')) $('#name').value = S.name;
     if($('#defaultWeeklyHours')) $('#defaultWeeklyHours').value = S.defaultWeeklyHours || 20;
     if($('#initialBalance')) $('#initialBalance').value = S.initialBalance || 0;
+
     let apkLink = $('#apkDownloadLink');
-        if(apkLink) {
-            apkLink.href = "https://github.com/MrPapr/SimplStundenliste/releases/latest";
-        }
+    if(apkLink) {
+        apkLink.href = "https://github.com/MrPapr/SimplStundenliste/releases/latest";
+    }
+
     render();
-
-
 }
-
-// Startet die App, sobald das HTML komplett geladen ist
-document.addEventListener('DOMContentLoaded', () => {
-    initApp();
-});
