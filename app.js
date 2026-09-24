@@ -194,16 +194,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // 2. Deine eigentliche App-Logik
+// Android-Download-Integration
 if (typeof window !== 'undefined' && window.AndroidDownload) {
     document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('is-android-app');
     });
 }
 
-const KEY='simplicissimus-offline-v57';
-let S={
-    name:'',
-    entries:{},
+const KEY = 'simplicissimus-offline-v57';
+let S = {
+    name: '',
+    entries: {},
     quickShifts: [
         { name: 'Normal', start: '18:00', end: '23:00' },
         { name: 'Doppel', start: '14:00', end: '23:00' },
@@ -216,12 +217,14 @@ let S={
 
 let currentType = 'work'; // 'work', 'vacation', 'sick', 'za'
 
-const $=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0'),iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const $ = s => document.querySelector(s),
+      pad = n => String(n).padStart(2, '0'),
+      iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
 function load(){
     try{
-        let data = JSON.parse(localStorage.getItem(KEY)||'{}');
-        S={...S,...data};
+        let data = JSON.parse(localStorage.getItem(KEY) || '{}');
+        S = { ...S, ...data };
         if(!S.monthlyWeeklyHours) S.monthlyWeeklyHours = {};
         if(!S.defaultWeeklyHours) S.defaultWeeklyHours = 20;
         if(S.initialBalance === undefined) S.initialBalance = 0;
@@ -235,21 +238,24 @@ function load(){
         }
     }catch{}
 }
-function save(){localStorage.setItem(KEY,JSON.stringify(S))}
 
-function hours(a,b){
-    if(!a||!b)return 0;
-    let [ah,am]=a.split(':').map(Number),[bh,bm]=b.split(':').map(Number),m=(bh*60+bm)-(ah*60+am);
-    if(m<0)m+=1440;
-    return m/60;
+function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+
+function hours(a, b){
+    if(!a || !b) return 0;
+    let [ah, am] = a.split(':').map(Number),
+        [bh, bm] = b.split(':').map(Number),
+        m = (bh * 60 + bm) - (ah * 60 + am);
+    if(m < 0) m += 1440;
+    return m / 60;
 }
 
 function ht(n){
     let prefix = n > 0 ? '+' : '';
-    return prefix + n.toLocaleString('de-AT',{minimumFractionDigits:2,maximumFractionDigits:2})+' h';
+    return prefix + n.toLocaleString('de-AT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' h';
 }
 
-function parse(s){return new Date(s+'T12:00:00')}
+function parse(s){ return new Date(s + 'T12:00:00'); }
 
 function hasHours(e){
     if(!e) return false;
@@ -258,24 +264,24 @@ function hasHours(e){
 }
 
 function fillTimeSelects(){
-    let hs='<option value="">--</option>'+Array.from({length:24},(_,i)=>`<option value="${pad(i)}">${pad(i)}</option>`).join(''),
-        ms='<option value="">--</option>'+['00','15','30','45'].map(x=>`<option value="${x}">${x}</option>`).join('');
-    ['startHour','endHour'].forEach(id=>{ if($('#'+id)) $('#'+id).innerHTML=hs; });
-    ['startMinute','endMinute'].forEach(id=>{ if($('#'+id)) $('#'+id).innerHTML=ms; });
+    let hs = '<option value="">--</option>' + Array.from({length: 24}, (_, i) => `<option value="${pad(i)}">${pad(i)}</option>`).join(''),
+        ms = '<option value="">--</option>' + ['00', '15', '30', '45'].map(x => `<option value="${x}">${x}</option>`).join('');
+    ['startHour', 'endHour'].forEach(id => { if($('#'+id)) $('#'+id).innerHTML = hs; });
+    ['startMinute', 'endMinute'].forEach(id => { if($('#'+id)) $('#'+id).innerHTML = ms; });
 }
 
-function setTime(prefix,t){
-    let [h='',m='']=String(t||'').split(':');
-    if($('#'+prefix+'Hour')) $('#'+prefix+'Hour').value=h;
-    if($('#'+prefix+'Minute')) $('#'+prefix+'Minute').value=m;
+function setTime(prefix, t){
+    let [h = '', m = ''] = String(t || '').split(':');
+    if($('#'+prefix+'Hour')) $('#'+prefix+'Hour').value = h;
+    if($('#'+prefix+'Minute')) $('#'+prefix+'Minute').value = m;
 }
 
 function getTime(prefix){
-    let h=$('#'+prefix+'Hour')?.value,m=$('#'+prefix+'Minute')?.value;
-    return h&&m?`${h}:${m}`:'';
+    let h = $('#'+prefix+'Hour')?.value, m = $('#'+prefix+'Minute')?.value;
+    return h && m ? `${h}:${m}` : '';
 }
 
-function wd(s){return ['So','Mo','Di','Mi','Do','Fr','Sa'][parse(s).getDay()]}
+function wd(s){ return ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][parse(s).getDay()]; }
 
 function easter(y){
     let a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31)-1,da=(h+l-7*m+114)%31+1;
@@ -289,15 +295,15 @@ function holidays(y){
 }
 
 function special(s){
-    let d=parse(s),h=holidays(d.getFullYear());
-    return h[s]||d.getDay()===0?'holiday':'';
+    let d = parse(s), h = holidays(d.getFullYear());
+    return h[s] || d.getDay() === 0 ? 'holiday' : '';
 }
 
-function isDoublePayDay(ds) {
+function isDoublePayDay(ds){
     return special(ds) === 'holiday';
 }
 
-function getWeightedHours(ds, entry) {
+function getWeightedHours(ds, entry){
     if(!hasHours(entry)) return 0;
 
     let m = ds.slice(0, 7);
@@ -315,12 +321,12 @@ function getWeightedHours(ds, entry) {
     return isDoublePayDay(ds) ? base * 2 : base;
 }
 
-function getTargetHoursForMonth(monthKey) {
+function getTargetHoursForMonth(monthKey){
     let weekly = S.monthlyWeeklyHours[monthKey] !== undefined ? S.monthlyWeeklyHours[monthKey] : (S.defaultWeeklyHours || 20);
     return weekly * 4.33;
 }
 
-function getMonthStats(monthKey) {
+function getMonthStats(monthKey){
     let [y, mo] = monthKey.split('-').map(Number);
     let days = new Date(y, mo, 0).getDate();
     let ist = 0;
@@ -337,7 +343,7 @@ function getMonthStats(monthKey) {
     return { ist, soll, diff };
 }
 
-function getCumulativeBalance(currentMonthKey) {
+function getCumulativeBalance(currentMonthKey){
     let months = Array.from(new Set([
         ...Object.keys(S.entries).map(k => k.slice(0, 7)),
         ...Object.keys(S.monthlyWeeklyHours),
@@ -354,10 +360,11 @@ function getCumulativeBalance(currentMonthKey) {
     return balance;
 }
 
-function entryRow(ds, e, editable=false){
+// Zeilen-Generierung (Datum OHNE Jahr: z.B. "Mo 05.06.")
+// Zeilen-Generierung (Datum OHNE Jahr: z.B. "Mo 05.06.") mit Icon statt Text
+function entryRow(ds, e, editable = false){
     let hoursDisplay = '–';
     let d = parse(ds);
-    // Datum ohne Jahr formatieren (z.B. "Mo 05.06.")
     let dateFormatted = `${wd(ds)} ${pad(d.getDate())}.${pad(d.getMonth()+1)}.`;
 
     if(hasHours(e)){
@@ -378,13 +385,16 @@ function entryRow(ds, e, editable=false){
         }
     }
 
-    return `<tr class="${special(ds)}"><td>${dateFormatted}</td><td>${e?.start||'–'}</td><td>${e?.end||'–'}</td><td>${hoursDisplay}</td>${editable?`<td><button class="edit-btn" data-edit="${ds}">Bearbeiten</button></td>`:''}</tr>`;
+    return `<tr class="${special(ds)}">
+        <td>${dateFormatted}</td>
+        <td>${e?.start||'–'}</td>
+        <td>${e?.end||'–'}</td>
+        <td>${hoursDisplay}</td>
+        ${editable?`<td style="text-align: right;"><button class="edit-btn" data-edit="${ds}" title="Bearbeiten">✏️</button></td>`:''}
+    </tr>`;
 }
 
-    return `<tr class="${special(ds)}"><td>${wd(ds)} ${parse(ds).toLocaleDateString('de-AT')}</td><td>${e?.start||'–'}</td><td>${e?.end||'–'}</td><td>${hoursDisplay}</td>${editable?`<td><button class="edit-btn" data-edit="${ds}">Bearbeiten</button></td>`:''}</tr>`;
-}
-
-function renderQuickShifts() {
+function renderQuickShifts(){
     let container = $('#quickShiftsContainer');
     if(!container) return;
     container.innerHTML = S.quickShifts.map(s =>
@@ -392,7 +402,7 @@ function renderQuickShifts() {
     ).join('');
 }
 
-function renderQuickShiftsSettings() {
+function renderQuickShiftsSettings(){
     let container = $('#quickShiftsSettings');
     if(!container) return;
     container.innerHTML = S.quickShifts.map((s, idx) => `
@@ -413,13 +423,13 @@ function renderQuickShiftsSettings() {
     `).join('');
 }
 
-function applyShift(start, end) {
+function applyShift(start, end){
     setTime('start', start);
     setTime('end', end);
     setType('work');
 }
 
-function setType(type) {
+function setType(type){
     currentType = type;
     document.querySelectorAll('.type-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.type === type);
@@ -431,54 +441,53 @@ function setType(type) {
 }
 
 function render(){
-    let ds=$('#date').value, e=S.entries[ds];
+    let ds = $('#date').value, e = S.entries[ds];
     setType(e?.type || 'work');
-    setTime('start', e?.start||'');
-    setTime('end', e?.end||'');
+    setTime('start', e?.start || '');
+    setTime('end', e?.end || '');
 
     renderQuickShifts();
     renderQuickShiftsSettings();
 
-    let recent=Object.keys(S.entries).filter(d=>hasHours(S.entries[d])).sort().reverse().slice(0,10);
-    $('#recent').innerHTML=recent.map(d=>entryRow(d,S.entries[d],true)).join('')||'<tr><td colspan="5">Noch keine Einträge.</td></tr>';
+    let recent = Object.keys(S.entries).filter(d => hasHours(S.entries[d])).sort().reverse().slice(0, 10);
+    $('#recent').innerHTML = recent.map(d => entryRow(d, S.entries[d], true)).join('') || '<tr><td colspan="5">Noch keine Einträge.</td></tr>';
 
-    document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editEntry(b.dataset.edit));
+    document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => editEntry(b.dataset.edit));
     renderWeek();
     renderMonth();
 }
 
 function editEntry(ds){
-    $('#date').value=ds;
-    let e=S.entries[ds];
+    $('#date').value = ds;
+    let e = S.entries[ds];
     setType(e?.type || 'work');
-    setTime('start',e?.start||'');
-    setTime('end',e?.end||'');
-    document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.v==='day'));
-    document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!=='day');
-    let c=$('#day .card');
+    setTime('start', e?.start || '');
+    setTime('end', e?.end || '');
+    document.querySelectorAll('nav button').forEach(x => x.classList.toggle('active', x.dataset.v === 'day'));
+    document.querySelectorAll('.view').forEach(v => v.hidden = v.id !== 'day');
+    let c = $('#day .card');
     c.classList.add('editing');
-    c.scrollIntoView({behavior:'smooth',block:'start'});
-    setTimeout(()=>c.classList.remove('editing'),1400);
+    c.scrollIntoView({behavior: 'smooth', block: 'start'});
+    setTimeout(() => c.classList.remove('editing'), 1400);
 }
 
 function renderWeek(){
-    let d=parse($('#weekDate').value),day=d.getDay()||7;
-    d.setDate(d.getDate()-day+1);
-    let rows=[],tot=0;
-    for(let i=0;i<7;i++){
-        let x=new Date(d);
-        x.setDate(d.getDate()+i);
-        let ds=iso(x),e=S.entries[ds];
+    let d = parse($('#weekDate').value), day = d.getDay() || 7;
+    d.setDate(d.getDate() - day + 1);
+    let rows = [], tot = 0;
+    for(let i = 0; i < 7; i++){
+        let x = new Date(d);
+        x.setDate(d.getDate() + i);
+        let ds = iso(x), e = S.entries[ds];
         if(hasHours(e)){
-            tot+=getWeightedHours(ds, e);
-            rows.push(entryRow(ds,e,true)); // <--- Hier auf true gesetzt
+            tot += getWeightedHours(ds, e);
+            rows.push(entryRow(ds, e, true));
         }
     }
-    $('#weekRows').innerHTML=rows.join('')||'<tr><td colspan="5">Keine Arbeitsstunden in dieser Woche.</td></tr>'; // colspan auf 5 erhöht für den Button
-    $('#weekTotal').textContent='Angerechnete Stunden: '+ht(tot);
+    $('#weekRows').innerHTML = rows.join('') || '<tr><td colspan="5">Keine Arbeitsstunden in dieser Woche.</td></tr>';
+    $('#weekTotal').textContent = 'Angerechnete Stunden: ' + ht(tot);
 
-    // Klick-Event für die Bearbeiten-Buttons in der Woche binden
-    document.querySelectorAll('#weekRows [data-edit]').forEach(b=>b.onclick=()=>editEntry(b.dataset.edit));
+    document.querySelectorAll('#weekRows [data-edit]').forEach(b => b.onclick = () => editEntry(b.dataset.edit));
 }
 
 function renderMonth(){
@@ -493,16 +502,12 @@ function renderMonth(){
         let ds = `${y}-${pad(mo)}-${pad(i)}`;
         let e = S.entries[ds];
         if(hasHours(e)){
-            rows.push(entryRow(ds, e, true)); // Mit Bearbeiten-Button
+            rows.push(entryRow(ds, e, true));
         }
     }
 
-    $('#monthRows').innerHTML = rows.rows || rows.join('') || '<tr><td colspan="5">Keine Arbeitsstunden in diesem Monat.</td></tr>';
-    // Korrektur für die Tabellenzeilen-Ausgabe:
     $('#monthRows').innerHTML = rows.join('') || '<tr><td colspan="5">Keine Arbeitsstunden in diesem Monat.</td></tr>';
-
-    // Klick-Event für die Bearbeiten-Buttons im Monat binden
-    document.querySelectorAll('#monthRows [data-edit]').forEach(b=>b.onclick=()=>editEntry(b.dataset.edit));
+    document.querySelectorAll('#monthRows [data-edit]').forEach(b => b.onclick = () => editEntry(b.dataset.edit));
 
     let currentWeekly = S.monthlyWeeklyHours[m] !== undefined ? S.monthlyWeeklyHours[m] : (S.defaultWeeklyHours || 20);
     if($('#monthWeeklyHours')) $('#monthWeeklyHours').value = currentWeekly;
@@ -545,7 +550,7 @@ function renderMonth(){
 }
 
 function esc(s){
-    return String(s).replace(/[\\()]/g,'\\$&').replace(/[ä]/g,'ae').replace(/[ö]/g,'oe').replace(/[ü]/g,'ue').replace(/[Ä]/g,'Ae').replace(/[Ö]/g,'Oe').replace(/[Ü]/g,'Ue').replace(/ß/g,'ss');
+    return String(s).replace(/[\\()]/g, '\\$&').replace(/[ä]/g, 'ae').replace(/[ö]/g, 'oe').replace(/[ü]/g, 'ue').replace(/[Ä]/g, 'Ae').replace(/[Ö]/g, 'Oe').replace(/[Ü]/g, 'Ue').replace(/ß/g, 'ss');
 }
 
 function pdfBlob(){
@@ -650,38 +655,38 @@ function pdfBlob(){
 }
 
 function filename(){
-    return `Arbeitszeiten-${S.name.replace(/[^a-zA-Z0-9äöüÄÖÜß_-]+/g,'_')}-${$('#monthPick').value}.pdf`;
+    return `Arbeitszeiten-${S.name.replace(/[^a-zA-Z0-9äöüÄÖÜß_-]+/g, '_')}-${$('#monthPick').value}.pdf`;
 }
 
-function initApp() {
+function initApp(){
     load();
     fillTimeSelects();
-    let today=iso(new Date());
-    $('#date').value=today;
-    $('#weekDate').value=today;
-    $('#monthPick').value=today.slice(0,7);
+    let today = iso(new Date());
+    $('#date').value = today;
+    $('#weekDate').value = today;
+    $('#monthPick').value = today.slice(0, 7);
 
     if(S.name) openApp();
 
-    $('#setupBtn').onclick=()=>{
-        let n=$('#setupName').value.trim();
-        if(n.length<2)return alert('Bitte deinen Namen eingeben.');
-        S.name=n;
+    $('#setupBtn').onclick = () => {
+        let n = $('#setupName').value.trim();
+        if(n.length < 2) return alert('Bitte deinen Namen eingeben.');
+        S.name = n;
         save();
         openApp();
     };
 
-    document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
-        document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+        document.querySelectorAll('nav button').forEach(x => x.classList.remove('active'));
         b.classList.add('active');
-        document.querySelectorAll('.view').forEach(v=>v.hidden=true);
-        $('#'+b.dataset.v).hidden=false;
+        document.querySelectorAll('.view').forEach(v => v.hidden = true);
+        $('#'+b.dataset.v).hidden = false;
         render();
     });
 
-    $('#date').onchange=render;
-    $('#weekDate').onchange=renderWeek;
-    $('#monthPick').onchange=renderMonth;
+    $('#date').onchange = render;
+    $('#weekDate').onchange = renderWeek;
+    $('#monthPick').onchange = renderMonth;
 
     if($('#monthWeeklyHours')) {
         $('#monthWeeklyHours').onchange = (e) => {
@@ -693,11 +698,11 @@ function initApp() {
         };
     }
 
-    $('#save').onclick=()=>{
+    $('#save').onclick = () => {
         let dateVal = $('#date').value;
         if (currentType === 'work') {
-            let a=getTime('start'), b=getTime('end');
-            if(!a||!b) return alert('Bitte Beginn und Ende vollständig auswählen.');
+            let a = getTime('start'), b = getTime('end');
+            if(!a || !b) return alert('Bitte Beginn und Ende vollständig auswählen.');
             S.entries[dateVal] = { start: a, end: b, type: 'work' };
         } else {
             S.entries[dateVal] = { type: currentType };
@@ -706,16 +711,16 @@ function initApp() {
         render();
     };
 
-    $('#del').onclick=()=>{
+    $('#del').onclick = () => {
         delete S.entries[$('#date').value];
         save();
         render();
     };
 
-    $('#settingsSave').onclick=()=>{
-        let n=$('#name').value.trim();
-        if(n.length<2)return alert('Bitte einen Namen eingeben.');
-        S.name=n;
+    $('#settingsSave').onclick = () => {
+        let n = $('#name').value.trim();
+        if(n.length < 2) return alert('Bitte einen Namen eingeben.');
+        S.name = n;
         if($('#defaultWeeklyHours')) {
             S.defaultWeeklyHours = parseFloat($('#defaultWeeklyHours').value) || 20;
         }
@@ -732,7 +737,7 @@ function initApp() {
         });
 
         save();
-        $('#who').textContent=S.name;
+        $('#who').textContent = S.name;
         render();
         alert('Einstellungen gespeichert.');
     };
@@ -768,7 +773,7 @@ function initApp() {
 
     $('#backup').onclick = () => {
         const exportPayload = {
-            format: 'Simplicissimus-Offline',
+            format: 'Simplicissimus-Offline-v5.7',
             timestamp: new Date().toISOString(),
             data: S
         };
@@ -815,7 +820,7 @@ function initApp() {
             }
 
             S = parsed.data;
-        save();
+            save();
             alert('Sicherung erfolgreich wiederhergestellt!');
             location.reload();
 
@@ -827,12 +832,17 @@ function initApp() {
 }
 
 function openApp(){
-    if(!S.name)return;
-    $('#setup').hidden=true;
-    $('#app').hidden=false;
-    $('#who').textContent=S.name;
-    if($('#name')) $('#name').value=S.name;
+    if(!S.name) return;
+    $('#setup').hidden = true;
+    $('#app').hidden = false;
+    $('#who').textContent = S.name;
+    if($('#name')) $('#name').value = S.name;
     if($('#defaultWeeklyHours')) $('#defaultWeeklyHours').value = S.defaultWeeklyHours || 20;
     if($('#initialBalance')) $('#initialBalance').value = S.initialBalance || 0;
     render();
 }
+
+// Startet die App, sobald das HTML komplett geladen ist
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+});

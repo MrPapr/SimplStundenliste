@@ -229,3 +229,42 @@ th, td { text-align: left; padding: 9px 7px; border-bottom: 1px solid var(--bord
 body.is-android-app {
     --top-padding: 50px;
 }
+
+/* Kompakter Bearbeiten-Button mit Symbol */
+.edit-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.edit-btn:hover {
+    background: var(--border-color);
+}
+
+/* Tabellen kompakter machen, um Scrollen zu verhindern */
+table {
+    font-size: 0.85rem; /* Etwas kleinere Schrift */
+}
+
+table th,
+table td {
+    padding: 6px 8px !important; /* Geringerer Innenabstand der Zellen */
+    line-height: 1.2;
+}
+
+/* Badge-Grössen anpassen, damit sie weniger Platz brauchen */
+.badge {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+}
+
+/* Bearbeiten-Buttons kompakter gestalten */
+.edit-btn {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+}
+
