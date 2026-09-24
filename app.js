@@ -315,6 +315,7 @@ function getTime(prefix){
 
 function wd(s){ return ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][parse(s).getDay()]; }
 
+
 function easter(y){
     let a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31)-1,da=(h+l-7*m+114)%31+1;
     return new Date(y,mo,da);
@@ -858,6 +859,110 @@ function renderScheduleSection() {
         html += `<tr style="border-bottom: 1px solid var(--border-color);">
             <td style="padding: 10px 8px; width: 35%; vertical-align: top;">
                 <div style="font-weight: bold;">${weekdayName}, ${formatDisplayDate(item.date)}</div>
+            </td>
+            <td style="padding: 10px 8px; vertical-align: top;">
+                <strong>${item.title || ''}</strong><br>
+                <small style="color: var(--text-muted);">${item.time || ''}</small>
+            </td>
+        </tr>`;
+    });
+    html += `</table>`;
+    container.innerHTML = html;
+}
+
+
+
+// 4. Datum für die Anzeige formatieren (z.B. 1.9.2026)
+function formatDisplayDate(dateStr) {
+    let itemDate = parseDateString(dateStr);
+    if (!itemDate || isNaN(itemDate)) return dateStr;
+
+    let day = itemDate.getUTCDate();
+    let month = itemDate.getUTCMonth() + 1;
+    let year = itemDate.getUTCFullYear();
+
+    return `${day}.${month}.${year}`;
+}
+
+// 5. Die Hauptfunktion für den Spielplan
+function renderScheduleSection() {
+    let container = $('#scheduleListContainer');
+    let label = $('#currentMonthLabel');
+    if (!container) return;
+
+    if (!S.theaterSchedule || S.theaterSchedule.length === 0) {
+        if(label) label.textContent = "Kein Spielplan";
+        container.innerHTML = `<div style="padding: 10px; color: var(--text-muted);">Kein Spielplan verfügbar.</div>`;
+        return;
+    }
+
+    // Ziel-Monat berechnen basierend auf dem Offset
+    let now = new Date();
+    let targetDate = new Date(now.getFullYear(), now.getMonth() + S.currentMonthOffset, 1);
+    let year = targetDate.getFullYear();
+    let month = targetDate.getMonth();
+
+    // Monatslabel aktualisieren
+    if (label) {
+        let monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+        label.textContent = `${monthNames[month]} ${year}`;
+    }
+
+    // Termine für diesen Monat filtern
+    let filteredSchedule = S.theaterSchedule.filter(item => {
+        let itemDate = parseDateString(item.date);
+        return itemDate && itemDate.getFullYear() === year && itemDate.getMonth() === month;
+    });
+
+    // Chronologisch nach Datum sortieren
+    filteredSchedule.sort((a, b) => parseDateString(a.date) - parseDateString(b.date));
+
+    if (filteredSchedule.length === 0) {
+        container.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-muted);">Keine Vorstellungen in diesem Monat.</div>`;
+        return;
+    }
+
+    // Tabelle aufbauen
+    let html = `<table style="width: 100%; border-collapse: collapse;">`;
+    let lastWeekNo = null;
+
+    filteredSchedule.forEach((item, index) => {
+        let itemDate = parseDateString(item.date);
+        let currentWeekNo = itemDate ? getWeekNumber(itemDate) : null;
+
+        // Wochentag im UTC-Modus ermitteln
+        let weekdayName = itemDate ? itemDate.toLocaleDateString('de-DE', { weekday: 'short', timeZone: 'UTC' }) : '';
+
+        // Prüfen ob Feiertag oder Sonntag
+        let itemYear = itemDate ? itemDate.getUTCFullYear() : year;
+        let holidayList = holidays(itemYear);
+
+        let m = itemDate ? String(itemDate.getUTCMonth() + 1).padStart(2, '0') : '';
+        let dayNum = itemDate ? String(itemDate.getUTCDate()).padStart(2, '0') : '';
+        let isoStr = `${itemYear}-${m}-${dayNum}`;
+
+        let holidayName = holidayList[isoStr];
+        let isSunday = itemDate ? itemDate.getUTCDay() === 0 : false;
+
+        // Rote Markierung aktivieren, wenn Feiertag ODER Sonntag
+        let isSpecialDay = holidayName || isSunday;
+        let dateColorStyle = isSpecialDay ? 'color: #ff5252;' : '';
+
+        // Feiertags-Name als Zusatztext (optional auch für Sonntage anpassbar)
+        let specialInfoHTML = holidayName ? `<br><small style="color: ${isSpecialDay ? '#ff5252' : 'var(--text-muted)'}; font-style: italic;">${holidayName}</small>` : '';
+
+        // Deutlicher Wochenabstand mit dicker Linie
+        if (index > 0 && currentWeekNo !== lastWeekNo) {
+            html += `<tr><td colspan="2" style="padding: 18px 0 8px 0;">
+                <div style="border-top: 2px solid var(--border-color, #666);"></div>
+            </td></tr>`;
+        }
+        lastWeekNo = currentWeekNo;
+
+        html += `<tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 10px 8px; width: 35%; vertical-align: top;">
+                <div style="font-weight: bold; ${dateColorStyle}">${weekdayName}, ${formatDisplayDate(item.date)}</div>
+                ${specialInfoHTML}
             </td>
             <td style="padding: 10px 8px; vertical-align: top;">
                 <strong>${item.title || ''}</strong><br>
