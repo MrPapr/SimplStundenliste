@@ -1,3 +1,197 @@
+// 1. Automatisches Injizieren des HTML-Gerüsts beim Laden der Seite
+document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById("app-container");
+    if (container) {
+        container.innerHTML = `
+            <div id="setup" class="screen">
+                <div class="card login">
+                    <img src="simp-logo.png" class="logo" alt="Logo">
+                    <h1>Arbeitszeiten Simplicissimus</h1>
+                    <p class="muted">Offline-Arbeitszeiterfassung</p>
+                    <h2>Dieses Gerät einrichten</h2>
+                    <label for="setupName">Mein Name</label>
+                    <input id="setupName" placeholder="z. B. Max Mustermann" autocomplete="name">
+                    <p class="hint">Der Name wird nur auf diesem Gerät gespeichert und erscheint auf deinen PDFs.</p>
+                    <button id="setupBtn" class="primary wide">App einrichten</button>
+                </div>
+            </div>
+
+            <div id="app" hidden>
+                <header>
+                    <img src="simp-logo.png" class="headlogo" alt="Logo">
+                    <div>
+                        <strong>Arbeitszeiten Simplicissimus</strong>
+                        <small id="who"></small>
+                    </div>
+                </header>
+                
+                <div class="status">● Offline-App · V1.0</div>
+
+                <nav>
+                    <button data-v="day" class="active">Tag</button>
+                    <button data-v="week">Woche</button>
+                    <button data-v="month">Monat</button>
+                    <button data-v="settings">Einstellungen</button>
+                </nav>
+
+                <main>
+                    <section id="day" class="view">
+                        <div class="card">
+                            <label for="date">Datum</label>
+                            <input id="date" type="date">
+
+                            <label style="margin-top: 10px;">Art des Eintrags</label>
+                            <div class="type-selector">
+                                <button type="button" class="type-btn active" data-type="work" onclick="setType('work')">Arbeit</button>
+                                <button type="button" class="type-btn" data-type="vacation" onclick="setType('vacation')">Urlaub</button>
+                                <button type="button" class="type-btn" data-type="sick" onclick="setType('sick')">Krank</button>
+                                <button type="button" class="type-btn" data-type="za" onclick="setType('za')">ZA</button>
+                            </div>
+
+                            <div id="timeInputFields">
+                                <div id="quickShiftsContainer" class="quick-shifts"></div>
+
+                                <div class="grid">
+                                    <div>
+                                        <label>Beginn</label>
+                                        <div class="time-pick">
+                                            <select id="startHour" aria-label="Beginn Stunde"></select>
+                                            <span>:</span>
+                                            <select id="startMinute" aria-label="Beginn Minute"></select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label>Ende</label>
+                                        <div class="time-pick">
+                                            <select id="endHour" aria-label="Ende Stunde"></select>
+                                            <span>:</span>
+                                            <select id="endMinute" aria-label="Ende Minute"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="actions" style="margin-top: 15px;">
+                                <button id="save" class="primary">Eintrag speichern</button>
+                                <button id="del" class="danger">Löschen</button>
+                            </div>
+                            <div id="daySum" class="summary"></div>
+                        </div>
+
+                        <div class="card">
+                            <h2>Letzte 10 Einträge</h2>
+                            <div class="table">
+                                <table>
+                                    <thead>
+                                    <tr>
+                                        <th>Tag</th>
+                                        <th>Beginn</th>
+                                        <th>Ende</th>
+                                        <th>Stunden</th>
+                                        <th></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="recent"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="week" class="view" hidden>
+                        <div class="card">
+                            <label for="weekDate">Woche mit Datum</label>
+                            <input id="weekDate" type="date">
+                            <h2 id="weekTotal"></h2>
+                            <div class="table">
+                                <table>
+                                    <thead>
+                                    <tr>
+                                        <th>Tag</th>
+                                        <th>Beginn</th>
+                                        <th>Ende</th>
+                                        <th>Stunden</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="weekRows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="month" class="view" hidden>
+                        <div class="card">
+                            <div class="between">
+                                <div>
+                                    <label for="monthPick">Monat</label>
+                                    <input id="monthPick" type="month">
+                                </div>
+                                <div class="actions">
+                                    <button id="pdf" class="primary">PDF erstellen</button>
+                                    <button id="share">PDF teilen</button>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 15px;">
+                                <label for="monthWeeklyHours">Wochenstunden für diesen Monat</label>
+                                <input id="monthWeeklyHours" type="number" step="0.5" min="0" value="20">
+                            </div>
+
+                            <h2 id="monthTotal"></h2>
+
+                            <div class="table">
+                                <table>
+                                    <thead>
+                                    <tr>
+                                        <th>Tag</th>
+                                        <th>Beginn</th>
+                                        <th>Ende</th>
+                                        <th>Stunden</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="monthRows"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="settings" class="view" hidden>
+                        <div class="card">
+                            <h2>Persönliche Einstellungen</h2>
+                            <label for="name">Name für PDF</label>
+                            <input id="name">
+
+                            <label for="defaultWeeklyHours">Standard-Wochenstunden</label>
+                            <input id="defaultWeeklyHours" type="number" step="0.5" min="0" value="20">
+
+                            <label for="initialBalance">Start-Saldo / Korrektur (in Stunden)</label>
+                            <input id="initialBalance" type="number" step="0.25" placeholder="z. B. 12.5 oder -5">
+                            <p class="hint">Hier kannst du Plus- oder Minusstunden aus der Zeit vor der App eintragen.</p>
+
+                            <h3 style="margin-top: 20px; font-size: 1rem;">Schicht-Schnellauswahl anpassen</h3>
+                            <div id="quickShiftsSettings"></div>
+
+                            <button id="settingsSave" class="primary wide" style="margin-top: 15px;">Einstellungen speichern</button>
+                        </div>
+
+                        <div class="card">
+                            <h2>Datensicherung</h2>
+                            <p class="hint">Da alles nur auf diesem Gerät gespeichert wird, empfehlen wir gelegentlich eine Sicherung.</p>
+                            <div class="actions">
+                                <button id="backup">Sicherung exportieren</button>
+                                <label class="button">Sicherung importieren<input id="restore" type="file" accept="application/json" hidden></label>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        `;
+    }
+
+    // App-Start initialisieren
+    initApp();
+});
+
+// 2. Deine eigentliche App-Logik
 if (typeof window !== 'undefined' && window.AndroidDownload) {
     document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('is-android-app');
@@ -30,7 +224,6 @@ function load(){
         if(!S.defaultWeeklyHours) S.defaultWeeklyHours = 20;
         if(S.initialBalance === undefined) S.initialBalance = 0;
 
-        // Aktualisierte Standard-Schichten laden falls noch keine angepasst wurden
         if(!S.quickShifts || S.quickShifts.length === 0) {
             S.quickShifts = [
                 { name: 'Normal', start: '18:00', end: '23:00' },
@@ -444,12 +637,178 @@ function filename(){
     return `Arbeitszeiten-${S.name.replace(/[^a-zA-Z0-9äöüÄÖÜß_-]+/g,'_')}-${$('#monthPick').value}.pdf`;
 }
 
-load();
-fillTimeSelects();
-let today=iso(new Date());
-$('#date').value=today;
-$('#weekDate').value=today;
-$('#monthPick').value=today.slice(0,7);
+function initApp() {
+    load();
+    fillTimeSelects();
+    let today=iso(new Date());
+    $('#date').value=today;
+    $('#weekDate').value=today;
+    $('#monthPick').value=today.slice(0,7);
+
+    if(S.name) openApp();
+
+    $('#setupBtn').onclick=()=>{
+        let n=$('#setupName').value.trim();
+        if(n.length<2)return alert('Bitte deinen Namen eingeben.');
+        S.name=n;
+        save();
+        openApp();
+    };
+
+    document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+        document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        document.querySelectorAll('.view').forEach(v=>v.hidden=true);
+        $('#'+b.dataset.v).hidden=false;
+        render();
+    });
+
+    $('#date').onchange=render;
+    $('#weekDate').onchange=renderWeek;
+    $('#monthPick').onchange=renderMonth;
+
+    if($('#monthWeeklyHours')) {
+        $('#monthWeeklyHours').onchange = (e) => {
+            let val = parseFloat(e.target.value) || 0;
+            let m = $('#monthPick').value;
+            S.monthlyWeeklyHours[m] = val;
+            save();
+            renderMonth();
+        };
+    }
+
+    $('#save').onclick=()=>{
+        let dateVal = $('#date').value;
+        if (currentType === 'work') {
+            let a=getTime('start'), b=getTime('end');
+            if(!a||!b) return alert('Bitte Beginn und Ende vollständig auswählen.');
+            S.entries[dateVal] = { start: a, end: b, type: 'work' };
+        } else {
+            S.entries[dateVal] = { type: currentType };
+        }
+        save();
+        render();
+    };
+
+    $('#del').onclick=()=>{
+        delete S.entries[$('#date').value];
+        save();
+        render();
+    };
+
+    $('#settingsSave').onclick=()=>{
+        let n=$('#name').value.trim();
+        if(n.length<2)return alert('Bitte einen Namen eingeben.');
+        S.name=n;
+        if($('#defaultWeeklyHours')) {
+            S.defaultWeeklyHours = parseFloat($('#defaultWeeklyHours').value) || 20;
+        }
+        if($('#initialBalance')) {
+            S.initialBalance = parseFloat($('#initialBalance').value) || 0;
+        }
+
+        S.quickShifts = S.quickShifts.map((_, idx) => {
+            return {
+                name: $(`#shiftName_${idx}`)?.value || `Schicht ${idx+1}`,
+                start: $(`#shiftStart_${idx}`)?.value || '00:00',
+                end: $(`#shiftEnd_${idx}`)?.value || '00:00'
+            };
+        });
+
+        save();
+        $('#who').textContent=S.name;
+        render();
+        alert('Einstellungen gespeichert.');
+    };
+
+    $('#pdf').onclick = async () => {
+        let blob = pdfBlob();
+        let name = filename();
+
+        if (typeof AndroidDownload !== 'undefined') {
+            let reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => {
+                let base64Data = reader.result;
+                AndroidDownload.saveBlob(base64Data, name);
+            };
+        } else {
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = name;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+    };
+
+    $('#share').onclick = async () => {
+        let b = pdfBlob(), f = new File([b], filename(), { type: 'application/pdf' });
+        if (navigator.canShare?.({ files: [f] })) {
+            await navigator.share({ files: [f], title: 'Arbeitszeiten ' + S.name });
+        } else {
+            $('#pdf').click();
+        }
+    };
+
+    $('#backup').onclick = () => {
+        const exportPayload = {
+            format: 'Simplicissimus-Offline-v5.7',
+            timestamp: new Date().toISOString(),
+            data: S
+        };
+
+        const jsonString = JSON.stringify(exportPayload, null, 2);
+        const userName = (S && S.name) ? S.name.replace(/\s+/g, '_') : 'User';
+        const filename = `Simplicissimus_Sicherung_${userName}.json`;
+
+        if (typeof AndroidDownload !== 'undefined') {
+            const base64Data = "data:application/json;base64," + btoa(unescape(encodeURIComponent(jsonString)));
+            AndroidDownload.saveBlob(base64Data, filename);
+        } else {
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+    };
+
+    $('#restore').onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const parsed = JSON.parse(text);
+
+            const validFormats = ['Simplicissimus-Offline-v5.5', 'Simplicissimus-Offline-v5.6', 'Simplicissimus-Offline-v5.7'];
+            if (!parsed || !validFormats.includes(parsed.format) || !parsed.data) {
+                alert('Fehler: Die gewählte Datei ist keine gültige Simplicissimus-Sicherungsdatei.');
+                e.target.value = '';
+                return;
+            }
+
+            const confirmRestore = confirm(
+                'Möchtest du alle aktuellen Daten auf diesem Gerät durch die Daten aus dieser Sicherung ersetzen?'
+            );
+
+            if (!confirmRestore) {
+                e.target.value = '';
+                return;
+            }
+
+            S = parsed.data;
+        save();
+            alert('Sicherung erfolgreich wiederhergestellt!');
+            location.reload();
+
+        } catch (err) {
+            alert('Fehler beim Einlesen der Sicherungsdatei. Bitte überprüfe das Dateiformat.');
+            e.target.value = '';
+        }
+    };
+}
 
 function openApp(){
     if(!S.name)return;
@@ -461,168 +820,3 @@ function openApp(){
     if($('#initialBalance')) $('#initialBalance').value = S.initialBalance || 0;
     render();
 }
-
-$('#setupBtn').onclick=()=>{
-    let n=$('#setupName').value.trim();
-    if(n.length<2)return alert('Bitte deinen Namen eingeben.');
-    S.name=n;
-    save();
-    openApp();
-};
-
-if(S.name)openApp();
-
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
-    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    document.querySelectorAll('.view').forEach(v=>v.hidden=true);
-    $('#'+b.dataset.v).hidden=false;
-    render();
-});
-
-$('#date').onchange=render;
-$('#weekDate').onchange=renderWeek;
-$('#monthPick').onchange=renderMonth;
-
-if($('#monthWeeklyHours')) {
-    $('#monthWeeklyHours').onchange = (e) => {
-        let val = parseFloat(e.target.value) || 0;
-        let m = $('#monthPick').value;
-        S.monthlyWeeklyHours[m] = val;
-        save();
-        renderMonth();
-    };
-}
-
-$('#save').onclick=()=>{
-    let dateVal = $('#date').value;
-    if (currentType === 'work') {
-        let a=getTime('start'), b=getTime('end');
-        if(!a||!b) return alert('Bitte Beginn und Ende vollständig auswählen.');
-        S.entries[dateVal] = { start: a, end: b, type: 'work' };
-    } else {
-        S.entries[dateVal] = { type: currentType };
-    }
-    save();
-    render();
-};
-
-$('#del').onclick=()=>{
-    delete S.entries[$('#date').value];
-    save();
-    render();
-};
-
-$('#settingsSave').onclick=()=>{
-    let n=$('#name').value.trim();
-    if(n.length<2)return alert('Bitte einen Namen eingeben.');
-    S.name=n;
-    if($('#defaultWeeklyHours')) {
-        S.defaultWeeklyHours = parseFloat($('#defaultWeeklyHours').value) || 20;
-    }
-    if($('#initialBalance')) {
-        S.initialBalance = parseFloat($('#initialBalance').value) || 0;
-    }
-
-    // Schichten aus den Einstellungen speichern
-    S.quickShifts = S.quickShifts.map((_, idx) => {
-        return {
-            name: $(`#shiftName_${idx}`)?.value || `Schicht ${idx+1}`,
-            start: $(`#shiftStart_${idx}`)?.value || '00:00',
-            end: $(`#shiftEnd_${idx}`)?.value || '00:00'
-        };
-    });
-
-    save();
-    $('#who').textContent=S.name;
-    render();
-    alert('Einstellungen gespeichert.');
-};
-
-$('#pdf').onclick = async () => {
-    let blob = pdfBlob();
-    let name = filename();
-
-    if (typeof AndroidDownload !== 'undefined') {
-        let reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = () => {
-            let base64Data = reader.result;
-            AndroidDownload.saveBlob(base64Data, name);
-        };
-    } else {
-        let a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = name;
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    }
-};
-
-$('#share').onclick = async () => {
-    let b = pdfBlob(), f = new File([b], filename(), { type: 'application/pdf' });
-    if (navigator.canShare?.({ files: [f] })) {
-        await navigator.share({ files: [f], title: 'Arbeitszeiten ' + S.name });
-    } else {
-        $('#pdf').click();
-    }
-};
-
-$('#backup').onclick = () => {
-    const exportPayload = {
-        format: 'Simplicissimus-Offline-v5.7',
-        timestamp: new Date().toISOString(),
-        data: S
-    };
-
-    const jsonString = JSON.stringify(exportPayload, null, 2);
-    const userName = (S && S.name) ? S.name.replace(/\s+/g, '_') : 'User';
-    const filename = `Simplicissimus_Sicherung_${userName}.json`;
-
-    if (typeof AndroidDownload !== 'undefined') {
-        const base64Data = "data:application/json;base64," + btoa(unescape(encodeURIComponent(jsonString)));
-        AndroidDownload.saveBlob(base64Data, filename);
-    } else {
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        a.click();
-        URL.revokeObjectURL(a.href);
-    }
-};
-
-$('#restore').onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-        const text = await file.text();
-        const parsed = JSON.parse(text);
-
-        const validFormats = ['Simplicissimus-Offline-v5.5', 'Simplicissimus-Offline-v5.6', 'Simplicissimus-Offline-v5.7'];
-        if (!parsed || !validFormats.includes(parsed.format) || !parsed.data) {
-            alert('Fehler: Die gewählte Datei ist keine gültige Simplicissimus-Sicherungsdatei.');
-            e.target.value = '';
-            return;
-        }
-
-        const confirmRestore = confirm(
-            'Möchtest du alle aktuellen Daten auf diesem Gerät durch die Daten aus dieser Sicherung ersetzen?'
-        );
-
-        if (!confirmRestore) {
-            e.target.value = '';
-            return;
-        }
-
-        S = parsed.data;
-        save();
-        alert('Sicherung erfolgreich wiederhergestellt!');
-        location.reload();
-
-    } catch (err) {
-        alert('Fehler beim Einlesen der Sicherungsdatei. Bitte überprüfe das Dateiformat.');
-        e.target.value = '';
-    }
-};

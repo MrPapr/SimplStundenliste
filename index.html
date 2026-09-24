@@ -1,226 +1,27 @@
 <!doctype html>
 <html lang="de">
 <head>
-<!-- >Hier Versionsnummer Ändern bei CSS update</!-->
-    <link rel="stylesheet" href="styles.css?v=1">
-
-    <link rel="manifest" href="manifest.webmanifest">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="manifest" href="manifest.json">
-
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#b91c1c">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Arbeitszeiten Simplicissimus">
-    <title>Arbeitszeiten Simplicissimus</title>
-
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Simpl Stunden">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.webmanifest">
 
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <style>
+    <!-- Hier kommt deine zentrale CSS-Datei hin -->
+    <link rel="stylesheet" href="styles.css?v=1">
 
-    </style>
+    <title>Arbeitszeiten Simplicissimus</title>
 </head>
 <body>
 
-<div id="setup" class="screen">
-    <div class="card login">
-        <img src="simp-logo.png" class="logo" alt="Logo">
-        <h1>Arbeitszeiten Simplicissimus</h1>
-        <p class="muted">Offline-Arbeitszeiterfassung</p>
-        <h2>Dieses Gerät einrichten</h2>
-        <label for="setupName">Mein Name</label>
-        <input id="setupName" placeholder="z. B. Max Mustermann" autocomplete="name">
-        <p class="hint">Der Name wird nur auf diesem Gerät gespeichert und erscheint auf deinen PDFs.</p>
-        <button id="setupBtn" class="primary wide">App einrichten</button>
-    </div>
-</div>
+<!-- Hier baut JavaScript die gesamte App per Code hinein -->
+<div id="app-container"></div>
 
-<div id="app" hidden>
-    <header>
-        <img src="simp-logo.png" class="headlogo" alt="Logo">
-        <div>
-            <strong>Arbeitszeiten Simplicissimus</strong>
-            <small id="who"></small>
-        </div>
-    </header>
-    <!-- >Hier Versionsnummer ändern bei app.js update</!-->
-    <div class="status">● Offline-App · V1.0</div>
-
-    <nav>
-        <button data-v="day" class="active">Tag</button>
-        <button data-v="week">Woche</button>
-        <button data-v="month">Monat</button>
-        <button data-v="settings">Einstellungen</button>
-    </nav>
-
-    <main>
-        <section id="day" class="view">
-            <div class="card">
-                <label for="date">Datum</label>
-                <input id="date" type="date">
-
-                <label style="margin-top: 10px;">Art des Eintrags</label>
-                <div class="type-selector">
-                    <button type="button" class="type-btn active" data-type="work" onclick="setType('work')">Arbeit</button>
-                    <button type="button" class="type-btn" data-type="vacation" onclick="setType('vacation')">Urlaub</button>
-                    <button type="button" class="type-btn" data-type="sick" onclick="setType('sick')">Krank</button>
-                    <button type="button" class="type-btn" data-type="za" onclick="setType('za')">ZA</button>
-                </div>
-
-                <div id="timeInputFields">
-                    <!-- Hier werden die neuen Schnellschichten (Normal, Doppel, Nachmittag) gerendert -->
-                    <div id="quickShiftsContainer" class="quick-shifts"></div>
-
-                    <div class="grid">
-                        <div>
-                            <label>Beginn</label>
-                            <div class="time-pick">
-                                <select id="startHour" aria-label="Beginn Stunde"></select>
-                                <span>:</span>
-                                <select id="startMinute" aria-label="Beginn Minute"></select>
-                            </div>
-                        </div>
-                        <div>
-                            <label>Ende</label>
-                            <div class="time-pick">
-                                <select id="endHour" aria-label="Ende Stunde"></select>
-                                <span>:</span>
-                                <select id="endMinute" aria-label="Ende Minute"></select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="actions" style="margin-top: 15px;">
-                    <button id="save" class="primary">Eintrag speichern</button>
-                    <button id="del" class="danger">Löschen</button>
-                </div>
-                <div id="daySum" class="summary"></div>
-            </div>
-
-            <div class="card">
-                <h2>Letzte 10 Einträge</h2>
-                <div class="table">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Tag</th>
-                            <th>Beginn</th>
-                            <th>Ende</th>
-                            <th>Stunden</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody id="recent"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section id="week" class="view" hidden>
-            <div class="card">
-                <label for="weekDate">Woche mit Datum</label>
-                <input id="weekDate" type="date">
-                <h2 id="weekTotal"></h2>
-                <div class="table">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Tag</th>
-                            <th>Beginn</th>
-                            <th>Ende</th>
-                            <th>Stunden</th>
-                        </tr>
-                        </thead>
-                        <tbody id="weekRows"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section id="month" class="view" hidden>
-            <div class="card">
-                <div class="between">
-                    <div>
-                        <label for="monthPick">Monat</label>
-                        <input id="monthPick" type="month">
-                    </div>
-                    <div class="actions">
-                        <button id="pdf" class="primary">PDF erstellen</button>
-                        <button id="share">PDF teilen</button>
-                    </div>
-                </div>
-
-                <div style="margin-top: 15px;">
-                    <label for="monthWeeklyHours">Wochenstunden für diesen Monat</label>
-                    <input id="monthWeeklyHours" type="number" step="0.5" min="0" value="20">
-                </div>
-
-                <h2 id="monthTotal"></h2>
-
-                <div class="table">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Tag</th>
-                            <th>Beginn</th>
-                            <th>Ende</th>
-                            <th>Stunden</th>
-                        </tr>
-                        </thead>
-                        <tbody id="monthRows"></tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section id="settings" class="view" hidden>
-            <div class="card">
-                <h2>Persönliche Einstellungen</h2>
-                <label for="name">Name für PDF</label>
-                <input id="name">
-
-                <label for="defaultWeeklyHours">Standard-Wochenstunden</label>
-                <input id="defaultWeeklyHours" type="number" step="0.5" min="0" value="20">
-
-                <label for="initialBalance">Start-Saldo / Korrektur (in Stunden)</label>
-                <input id="initialBalance" type="number" step="0.25" placeholder="z. B. 12.5 oder -5">
-                <p class="hint">Hier kannst du Plus- oder Minusstunden aus der Zeit vor der App eintragen (z. B. +10 oder -4.5).</p>
-
-                <h3 style="margin-top: 20px; font-size: 1rem;">Schicht-Schnellauswahl anpassen</h3>
-                <div id="quickShiftsSettings"></div>
-
-                <button id="settingsSave" class="primary wide" style="margin-top: 15px;">Einstellungen speichern</button>
-            </div>
-
-            <div class="card">
-                <h2>Datensicherung</h2>
-                <p class="hint">Da alles nur auf diesem Gerät gespeichert wird, empfehlen wir gelegentlich eine Sicherung.</p>
-                <div class="actions">
-                    <button id="backup">Sicherung exportieren</button>
-                    <label class="button">Sicherung importieren<input id="restore" type="file" accept="application/json" hidden></label>
-                </div>
-            </div>
-        </section>
-    </main>
-</div>
-<!-- >Hier Versionsnummer ändern bei app.js update</!-->
+<!-- Die zentrale Steuerungs-Datei mit Versionsnummer für automatische Updates -->
 <script src="app.js?v=1"></script>
 
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(() => console.log('Service Worker aktiv!'));
-        });
-    }
-</script>
 </body>
 </html>
