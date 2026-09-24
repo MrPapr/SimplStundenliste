@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.0</div>
+                <div class="status">● Offline-App · V1.1</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -251,6 +251,7 @@ let S = {
 };
 
 let currentType = 'work'; // 'work', 'vacation', 'sick', 'za'
+let editingIndex = null;
 
 const $ = s => document.querySelector(s),
       pad = n => String(n).padStart(2, '0'),
@@ -277,6 +278,15 @@ function load(){
 
 function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
 
+function getDayEntries(ds) {
+    let e = S.entries[ds];
+    if (!e) return [];
+    let list = Array.isArray(e) ? e : [e];
+
+    // Sortiert die Dienste des Tages chronologisch nach Startzeit (früheste zuerst)
+    return list.sort((a, b) => (a.start || '').localeCompare(b.start || ''));
+}
+
 function hours(a, b){
     if(!a || !b) return 0;
     let [ah, am] = a.split(':').map(Number),
@@ -295,8 +305,30 @@ function parse(s){ return new Date(s + 'T12:00:00'); }
 
 function hasHours(e){
     if(!e) return false;
-    if(e.type === 'vacation' || e.type === 'sick' || e.type === 'za') return true;
-    return e.start && e.end && hours(e.start, e.end) > 0;
+    let list = Array.isArray(e) ? e : [e];
+    return list.some(item => item.type === 'vacation' || item.type === 'sick' || item.type === 'za' || (item.start && item.end && hours(item.start, item.end) > 0));
+}
+
+function getWeightedHours(ds, entry){
+    let list = Array.isArray(entry) ? entry : getDayEntries(ds);
+    if(list.length === 0) return 0;
+
+    let total = 0;
+    let m = ds.slice(0, 7);
+    let weekly = S.monthlyWeeklyHours[m] !== undefined ? S.monthlyWeeklyHours[m] : (S.defaultWeeklyHours || 20);
+    let dailyTarget = weekly / 5;
+
+    for(let entry of list) {
+        if (entry.type === 'vacation' || entry.type === 'sick') {
+            total += dailyTarget;
+        } else if (entry.type === 'za') {
+            // 0 h
+        } else if (entry.start && entry.end) {
+            let base = hours(entry.start, entry.end);
+            total += isDoublePayDay(ds) ? base * 2 : base;
+        }
+    }
+    return total;
 }
 
 
@@ -423,35 +455,48 @@ function getCumulativeBalance(currentMonthKey){
 }
 
 function entryRow(ds, e, editable = false){
-    let hoursDisplay = '–';
+    let list = Array.isArray(e) ? e : getDayEntries(ds);
+    if(list.length === 0) return '';
+
     let d = parse(ds);
     let dateFormatted = `${wd(ds)} ${pad(d.getDate())}.${pad(d.getMonth()+1)}.`;
 
-    if(hasHours(e)){
-        if(e.type === 'vacation') {
-            hoursDisplay = `<span class="badge badge-urlaub">Urlaub</span> (${ht(getWeightedHours(ds, e))})`;
-        } else if(e.type === 'sick') {
-            hoursDisplay = `<span class="badge badge-krank">Krank</span> (${ht(getWeightedHours(ds, e))})`;
-        } else if(e.type === 'za') {
-            hoursDisplay = `<span class="badge badge-za">Zeitausgleich</span> (0.00 h)`;
-        } else {
-            let base = hours(e.start, e.end);
-            let weighted = getWeightedHours(ds, e);
-            if(isDoublePayDay(ds)){
-                hoursDisplay = `${ht(base)} <small style="color:var(--primary); font-weight:bold;">(2x = ${ht(weighted)})</small>`;
-            } else {
-                hoursDisplay = ht(base);
-            }
+    let rowsHtml = '';
+    list.forEach((item, idx) => {
+        let hoursDisplay = '–';
+        if(item.type === 'vacation') {
+            hoursDisplay = `<span class="badge badge-urlaub">Urlaub</span>`;
+        } else if(item.type === 'sick') {
+            hoursDisplay = `<span class="badge badge-krank">Krank</span>`;
+        } else if(item.type === 'za') {
+            hoursDisplay = `<span class="badge badge-za">Zeitausgleich</span>`;
+        } else if(item.start && item.end) {
+            let base = hours(item.start, item.end);
+            hoursDisplay = isDoublePayDay(ds) ? `${ht(base)} (2x)` : ht(base);
         }
-    }
 
-    return `<tr class="${special(ds)}">
-        <td>${dateFormatted}</td>
-        <td>${e?.start||'–'}</td>
-        <td>${e?.end||'–'}</td>
-        <td>${hoursDisplay}</td>
-        ${editable?`<td style="text-align: right;"><button class="edit-btn" data-edit="${ds}" title="Bearbeiten">⚙️</button></td>`:''}
-    </tr>`;
+        let noteHtml = item?.note ? `<br><small style="color: var(--text-muted); font-style: italic;">📝 ${item.note}</small>` : '';
+        let isFirst = idx === 0;
+
+        // --- HIER WIRD DIE MITTERNACHTS-KENNZEICHNUNG GEMACHT ---
+        let endDisplay = item.end || '–';
+        if (item.start && item.end && item.end < item.start) {
+            endDisplay += ' <small style="color: var(--primary); font-weight: bold;">(+1)</small>';
+        }
+        // ---------------------------------------------------------
+
+        let editBtnHtml = editable ? `<button class="edit-btn" onclick="editEntry('${ds}', ${idx})" title="Dienst bearbeiten">⚙️</button>` : '';
+
+        rowsHtml += `<tr class="${special(ds)}">
+            <td>${isFirst ? dateFormatted : ''}${noteHtml}</td>
+            <td>${item?.start || '–'}</td>
+            <td>${endDisplay}</td>
+            <td>${hoursDisplay}</td>
+            <td style="text-align: right;">${editBtnHtml}</td>
+        </tr>`;
+    });
+
+    return rowsHtml;
 }
 
 function renderQuickShifts(){
@@ -522,17 +567,26 @@ function render(){
     renderMonth();
 }
 
-function editEntry(ds){
+function editEntry(ds, index = 0){
     $('#date').value = ds;
-    let e = S.entries[ds];
+    let list = getDayEntries(ds);
+    let e = list[index];
+
+    if(!e) return;
+
+    editingIndex = index; // Wir merken uns, welchen Index wir bearbeiten
+
     setType(e?.type || 'work');
     setTime('start', e?.start || '');
     setTime('end', e?.end || '');
 
-    // NEU: Notiz beim Bearbeiten in das Feld laden
     if($('#entryNote')) {
         $('#entryNote').value = e?.note || '';
     }
+
+    // Optional: UI-Feedback, dass wir gerade einen spezifischen Eintrag bearbeiten
+    let saveBtn = $('#save');
+    if(saveBtn) saveBtn.textContent = `Eintrag #${index + 1} aktualisieren`;
 
     document.querySelectorAll('nav button').forEach(x => x.classList.toggle('active', x.dataset.v === 'day'));
     document.querySelectorAll('.view').forEach(v => v.hidden = v.id !== 'day');
@@ -635,41 +689,51 @@ function pdfBlob(){
     let totalSpecialHours = 0;
     let hmap = holidays(y);
 
+    // Chronologische Schleife vom 1. bis zum letzten Tag des Monats
     for(let i = 1; i <= days; i++){
         let ds = `${y}-${pad(mo)}-${pad(i)}`,
-            e = S.entries[ds],
             d = parse(ds),
             isSun = d.getDay() === 0,
             h = hmap[ds];
 
-        // NEU: Notiz für die PDF-Zeile aufbereiten
-        let noteCol = e?.note ? `  ${e.note}` : '';
+        let list = getDayEntries(ds); // Alle Einträge dieses Tages holen
 
-        if(hasHours(e)){
-            if (e.type === 'vacation') {
-                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   Urlaub   ${ht(getWeightedHours(ds, e))}${noteCol}`);
-                totalIstHours += getWeightedHours(ds, e);
-            } else if (e.type === 'sick') {
-                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   Krank    ${ht(getWeightedHours(ds, e))}${noteCol}`);
-                totalIstHours += getWeightedHours(ds, e);
-            } else if (e.type === 'za') {
-                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   Zeitausgleich   0.00 h${noteCol}`);
-            } else {
-                let base = hours(e.start, e.end);
+        list.forEach((item) => {
+            let noteCol = item?.note ? ` | Notiz: ${item.note}` : '';
+            let dateStr = `${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}`;
+
+            if (item.type === 'vacation') {
+                let weighted = getWeightedHours(ds, [item]);
+                lines.push(`${dateStr}   Urlaub   ${ht(weighted)}${noteCol}`);
+                totalIstHours += weighted;
+            } else if (item.type === 'sick') {
+                let weighted = getWeightedHours(ds, [item]);
+                lines.push(`${dateStr}   Krank    ${ht(weighted)}${noteCol}`);
+                totalIstHours += weighted;
+            } else if (item.type === 'za') {
+                lines.push(`${dateStr}   Zeitausgleich   0.00 h${noteCol}`);
+            } else if (item.start && item.end) {
+                let base = hours(item.start, item.end);
                 totalIstHours += base;
-                lines.push(`${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}   ${e.start} - ${e.end}   ${ht(base)}${noteCol}`);
+                let displayHours = isDoublePayDay(ds) ? `${ht(base)} (2x)` : ht(base);
+                let endDisplay = item.end;
+                    if (item.start && item.end && item.end < item.start) {
+                        endDisplay += ' (+1)';
+                    }
+                lines.push(`${dateStr}   ${item.start} - ${endDisplay}   ${displayHours}${noteCol}`);
 
                 if(isSun || h){
                     let label = [];
                     if(isSun) label.push('Sonntag');
                     if(h) label.push(h);
 
-                    totalSpecialHours += base;
-                    let specialNote = e?.note ? ` | Notiz: ${e.note}` : '';
-                    specialLines.push(`${wd(ds)} ${pad(i)}.${pad(mo)}.${y}   ${e.start} - ${e.end} (${label.join(' / ')}): ${ht(base)}${specialNote}`);
+                    let weightedSpecial = isDoublePayDay(ds) ? base * 2 : base;
+                    totalSpecialHours += weightedSpecial;
+                    let specialNote = item?.note ? ` | Notiz: ${item.note}` : '';
+                    specialLines.push(`${wd(ds)} ${pad(i)}.${pad(mo)}.${y}   ${item.start} - ${item.end} (${label.join(' / ')}): ${ht(weightedSpecial)}${specialNote}`);
                 }
             }
-        }
+        });
     }
 
     if(lines.length === 0){
@@ -959,11 +1023,11 @@ function initApp(){
 
             $('#save').onclick = () => {
                 let dateVal = $('#date').value;
-                let noteVal = $('#entryNote')?.value.trim() || ''; // NEU: Notiz auslesen
+                let noteVal = $('#entryNote')?.value.trim() || '';
 
                 let entryData = {
                     type: currentType,
-                    note: noteVal // NEU: Notiz im Eintrag speichern (auch leer, damit Änderungen überschrieben werden)
+                    note: noteVal
                 };
 
                 if (currentType === 'work') {
@@ -973,15 +1037,58 @@ function initApp(){
                     entryData.end = b;
                 }
 
-                S.entries[dateVal] = entryData;
+                let dayEntries = getDayEntries(dateVal);
+
+                if (editingIndex !== null && dayEntries[editingIndex]) {
+                    // Bestehenden Eintrag an dieser Stelle aktualisieren
+                    dayEntries[editingIndex] = entryData;
+                    editingIndex = null; // Zurücksetzen
+                    $('#save').textContent = 'Eintrag speichern';
+                } else {
+                    // Neuen Dienst an den Tag anhängen
+                    dayEntries.push(entryData);
+                }
+
+                S.entries[dateVal] = dayEntries;
                 save();
                 render();
+
+                // Formular zurücksetzen / Notiz leeren
+                if($('#entryNote')) $('#entryNote').value = '';
             };
 
     $('#del').onclick = () => {
-        delete S.entries[$('#date').value];
+        let dateVal = $('#date').value;
+        let dayEntries = getDayEntries(dateVal);
+
+        if (dayEntries.length === 0) return;
+
+        // Wenn ein spezifischer Eintrag im Bearbeitungsmodus ausgewählt ist:
+        if (editingIndex !== null && dayEntries[editingIndex]) {
+            dayEntries.splice(editingIndex, 1); // Nur diesen einen Index löschen
+            editingIndex = null; // Bearbeitungsmodus zurücksetzen
+
+            let saveBtn = $('#save');
+            if(saveBtn) saveBtn.textContent = 'Eintrag speichern';
+        } else if (dayEntries.length > 0) {
+            // Fallback: Wenn kein Index aktiv ist, standardmäßig den ersten Eintrag löschen
+            dayEntries.shift();
+        }
+
+        // Wenn nach dem Löschen keine Einträge mehr da sind, den Tag komplett löschen
+        if (dayEntries.length === 0) {
+            delete S.entries[dateVal];
+        } else {
+            S.entries[dateVal] = dayEntries;
+        }
+
         save();
         render();
+
+        // Eingabefelder zurücksetzen
+        if($('#entryNote')) $('#entryNote').value = '';
+        setTime('start', '');
+        setTime('end', '');
     };
 
     $('#settingsSave').onclick = () => {
