@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.1</div>
+                <div class="status">● Offline-App · V1.2</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -110,6 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                         <th>Beginn</th>
                                         <th>Ende</th>
                                         <th>Stunden</th>
+                                        <th>Bearbeiten</th>
                                     </tr>
                                     </thead>
                                     <tbody id="weekRows"></tbody>
@@ -146,6 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                         <th>Beginn</th>
                                         <th>Ende</th>
                                         <th>Stunden</th>
+                                        <th>Bearbeiten</th>
                                     </tr>
                                     </thead>
                                     <tbody id="monthRows"></tbody>
@@ -354,6 +356,9 @@ function getCumulativeBalance(currentMonthKey) {
 
 function entryRow(ds, e, editable=false){
     let hoursDisplay = '–';
+    let d = parse(ds);
+    // Datum ohne Jahr formatieren (z.B. "Mo 05.06.")
+    let dateFormatted = `${wd(ds)} ${pad(d.getDate())}.${pad(d.getMonth()+1)}.`;
 
     if(hasHours(e)){
         if(e.type === 'vacation') {
@@ -372,6 +377,9 @@ function entryRow(ds, e, editable=false){
             }
         }
     }
+
+    return `<tr class="${special(ds)}"><td>${dateFormatted}</td><td>${e?.start||'–'}</td><td>${e?.end||'–'}</td><td>${hoursDisplay}</td>${editable?`<td><button class="edit-btn" data-edit="${ds}">Bearbeiten</button></td>`:''}</tr>`;
+}
 
     return `<tr class="${special(ds)}"><td>${wd(ds)} ${parse(ds).toLocaleDateString('de-AT')}</td><td>${e?.start||'–'}</td><td>${e?.end||'–'}</td><td>${hoursDisplay}</td>${editable?`<td><button class="edit-btn" data-edit="${ds}">Bearbeiten</button></td>`:''}</tr>`;
 }
@@ -463,11 +471,14 @@ function renderWeek(){
         let ds=iso(x),e=S.entries[ds];
         if(hasHours(e)){
             tot+=getWeightedHours(ds, e);
-            rows.push(entryRow(ds,e));
+            rows.push(entryRow(ds,e,true)); // <--- Hier auf true gesetzt
         }
     }
-    $('#weekRows').innerHTML=rows.join('')||'<tr><td colspan="4">Keine Arbeitsstunden in dieser Woche.</td></tr>';
+    $('#weekRows').innerHTML=rows.join('')||'<tr><td colspan="5">Keine Arbeitsstunden in dieser Woche.</td></tr>'; // colspan auf 5 erhöht für den Button
     $('#weekTotal').textContent='Angerechnete Stunden: '+ht(tot);
+
+    // Klick-Event für die Bearbeiten-Buttons in der Woche binden
+    document.querySelectorAll('#weekRows [data-edit]').forEach(b=>b.onclick=()=>editEntry(b.dataset.edit));
 }
 
 function renderMonth(){
@@ -482,11 +493,16 @@ function renderMonth(){
         let ds = `${y}-${pad(mo)}-${pad(i)}`;
         let e = S.entries[ds];
         if(hasHours(e)){
-            rows.push(entryRow(ds, e));
+            rows.push(entryRow(ds, e, true)); // Mit Bearbeiten-Button
         }
     }
 
-    $('#monthRows').innerHTML = rows.join('') || '<tr><td colspan="4">Keine Arbeitsstunden in diesem Monat.</td></tr>';
+    $('#monthRows').innerHTML = rows.rows || rows.join('') || '<tr><td colspan="5">Keine Arbeitsstunden in diesem Monat.</td></tr>';
+    // Korrektur für die Tabellenzeilen-Ausgabe:
+    $('#monthRows').innerHTML = rows.join('') || '<tr><td colspan="5">Keine Arbeitsstunden in diesem Monat.</td></tr>';
+
+    // Klick-Event für die Bearbeiten-Buttons im Monat binden
+    document.querySelectorAll('#monthRows [data-edit]').forEach(b=>b.onclick=()=>editEntry(b.dataset.edit));
 
     let currentWeekly = S.monthlyWeeklyHours[m] !== undefined ? S.monthlyWeeklyHours[m] : (S.defaultWeeklyHours || 20);
     if($('#monthWeeklyHours')) $('#monthWeeklyHours').value = currentWeekly;
