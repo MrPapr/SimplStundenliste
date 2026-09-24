@@ -24,8 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         <small id="who"></small>
                     </div>
                 </header>
-                
-                <div class="status">● Offline-App · V1.0</div>
+                // Versionsnummer
+                <div class="status">● Offline-App · V1.1</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
