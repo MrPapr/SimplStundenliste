@@ -158,13 +158,19 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                     </section>
 
-                    <!-- NEUE SECTION: Theater-Spielplan -->
                     <section id="schedule" class="view" hidden>
                         <div class="card">
                             <h2>🎭 Theater-Spielplan</h2>
-                            <p class="hint" style="margin-bottom: 15px;">Aktueller Spielplan (wird automatisch synchronisiert)</p>
+
+                            <!-- Monats-Navigation -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0; background: var(--bg-secondary, #2a2a2a); color: var(--text-color, #ffffff); padding: 8px 12px; border-radius: 8px;">
+                                <button onclick="changeMonth(-1)" style="cursor: pointer; background: none; border: none; font-size: 16px; font-weight: bold; color: inherit;">◀</button>
+                                <span id="currentMonthLabel" style="font-weight: bold; font-size: 14px; color: inherit;">Monat wird geladen...</span>
+                                <button onclick="changeMonth(1)" style="cursor: pointer; background: none; border: none; font-size: 16px; font-weight: bold; color: inherit;">▶</button>
+                            </div>
+
                             <div class="table">
-                                <div id="scheduleListContainer" style="max-height: 70vh; overflow-y: auto;">
+                                <div id="scheduleListContainer" style="max-height: 60vh; overflow-y: auto;">
                                     <span style="color: var(--text-muted);">Lade Spielplan...</span>
                                 </div>
                             </div>
@@ -682,7 +688,12 @@ function filename(){
     return `Arbeitszeiten-${S.name.replace(/[^a-zA-Z0-9äöüÄÖÜß_-]+/g, '_')}-${$('#monthPick').value}.pdf`;
 }
 
-// 🎭 Theater-Spielplan Funktionen
+// --- 🎭 Theater-Spielplan Monatsansicht & Zustand ---
+
+if (typeof S.currentMonthOffset === 'undefined') {
+    S.currentMonthOffset = 0;
+}
+
 function fetchTheaterSchedule() {
     const scheduleUrl = "https://raw.githubusercontent.com/MrPapr/SimplStundenliste/main/schedule.json";
     renderScheduleSection(); // Offline-First: sofort lokale Daten anzeigen
@@ -690,27 +701,99 @@ function fetchTheaterSchedule() {
     fetch(scheduleUrl)
         .then(res => res.json())
         .then(data => {
-            S.theaterSchedule = data;
-            save();
-            renderScheduleSection();
+            if (Array.isArray(data)) {
+                S.theaterSchedule = data;
+                save();
+                renderScheduleSection();
+            }
         })
         .catch(() => console.log('Offline: Nutze lokalen Spielplan.'));
 }
 
+function changeMonth(direction) {
+    S.currentMonthOffset += direction;
+    renderScheduleSection();
+}
+
+// Hilfsfunktion: Wandelt das Datumsformat (DD.MM.YYYY) in ein Date-Objekt um
+function parseDateString(dateStr) {
+    if (!dateStr) return null;
+    if (dateStr.includes('.')) {
+        let parts = dateStr.split('.');
+        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+    }
+    return new Date(dateStr);
+}
+
+// Hilfsfunktion: Ermittelt die Kalenderwoche, um Wochenwechsel zu erkennen
+function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    let dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    let yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+}
+
 function renderScheduleSection() {
     let container = $('#scheduleListContainer');
-    if(!container) return;
+    let label = $('#currentMonthLabel');
+    if (!container) return;
 
-    if(!S.theaterSchedule || S.theaterSchedule.length === 0) {
+    if (!S.theaterSchedule || S.theaterSchedule.length === 0) {
+        if(label) label.textContent = "Kein Spielplan";
         container.innerHTML = `<div style="padding: 10px; color: var(--text-muted);">Kein Spielplan verfügbar.</div>`;
         return;
     }
 
+    // Ziel-Monat berechnen basierend auf dem Offset
+    let now = new Date();
+    let targetDate = new Date(now.getFullYear(), now.getMonth() + S.currentMonthOffset, 1);
+    let year = targetDate.getFullYear();
+    let month = targetDate.getMonth();
+
+    // Monatslabel aktualisieren (z.B. "Juni 2026")
+    if (label) {
+        let monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+        label.textContent = `${monthNames[month]} ${year}`;
+    }
+
+    // Termine für diesen Monat filtern
+    let filteredSchedule = S.theaterSchedule.filter(item => {
+        let itemDate = parseDateString(item.date);
+        return itemDate && itemDate.getFullYear() === year && itemDate.getMonth() === month;
+    });
+
+    // Chronologisch nach Datum sortieren
+    filteredSchedule.sort((a, b) => parseDateString(a.date) - parseDateString(b.date));
+
+    if (filteredSchedule.length === 0) {
+        container.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--text-muted);">Keine Vorstellungen in diesem Monat.</div>`;
+        return;
+    }
+
+    // Tabelle aufbauen
     let html = `<table style="width: 100%; border-collapse: collapse;">`;
-    S.theaterSchedule.forEach(item => {
+    let lastWeekNo = null;
+
+    filteredSchedule.forEach((item, index) => {
+        let itemDate = parseDateString(item.date);
+        let currentWeekNo = itemDate ? getWeekNumber(itemDate) : null;
+        let weekdayName = itemDate ? itemDate.toLocaleDateString('de-DE', { weekday: 'short' }) : '';
+
+        // Freie Zeile / Trennlinie einfügen, sobald eine neue Woche (Montag) beginnt
+        if (index > 0 && currentWeekNo !== lastWeekNo) {
+            html += `<tr><td colspan="2" style="padding: 6px 0; border-bottom: 1px dashed var(--border-color, #444);"></td></tr>`;
+        }
+        lastWeekNo = currentWeekNo;
+
         html += `<tr style="border-bottom: 1px solid var(--border-color);">
-            <td style="padding: 8px; font-weight: bold; width: 35%;">${item.date || ''}</td>
-            <td style="padding: 8px;">${item.title || ''} <br><small style="color: var(--text-muted);">${item.time || ''}</small></td>
+            <td style="padding: 10px 8px; width: 35%; vertical-align: top;">
+                <div style="font-weight: bold;">${weekdayName}, ${item.date || ''}</div>
+            </td>
+            <td style="padding: 10px 8px; vertical-align: top;">
+                <strong>${item.title || ''}</strong><br>
+                <small style="color: var(--text-muted);">${item.time || ''}</small>
+            </td>
         </tr>`;
     });
     html += `</table>`;

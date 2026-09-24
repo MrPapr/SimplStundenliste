@@ -1,12 +1,1077 @@
 [
   {
-    "date": "2026-10-01",
+    "date": "1/10/2026",
     "time": "20:00",
-    "title": "1. Vorstellung"
+    "title": "ALLES BLEIBT ANDERS"
   },
   {
-    "date": "2026-10-01",
+    "date": "2/10/2026",
     "time": "20:00",
-    "title": "2. Vorstellung"
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "3/10/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "3/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "5/10/2026",
+    "time": "18:30",
+    "title": "FWF Radio Wien"
+  },
+  {
+    "date": "6/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "7/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "8/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "9/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "10/10/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "10/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "13/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "14/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "15/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "16/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "17/10/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "17/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "18/10/2026",
+    "time": "16:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "18/10/2026",
+    "time": "20:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "19/10/2026",
+    "time": "20:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "20/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "21/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "22/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "23/10/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "23/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "24/10/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "24/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "27/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "28/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "29/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "30/10/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "30/10/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "31/10/2026",
+    "time": "16:00",
+    "title": "DRACULA"
+  },
+  {
+    "date": "31/10/2026",
+    "time": "20:00",
+    "title": "DRACULA"
+  },
+  {
+    "date": "1/11/2026",
+    "time": "16:00",
+    "title": "DRACULA"
+  },
+  {
+    "date": "1/11/2026",
+    "time": "20:00",
+    "title": "DRACULA"
+  },
+  {
+    "date": "2/11/2026",
+    "time": "20:00",
+    "title": "DRACULA"
+  },
+  {
+    "date": "3/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "4/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "5/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "6/11/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "6/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "7/11/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "7/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "11/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "12/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "13/11/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "13/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "14/11/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "14/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "18/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "19/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "20/11/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "20/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "21/11/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "21/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "24/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "25/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "26/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "27/11/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "27/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "28/11/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "28/11/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "29/11/2026",
+    "time": "16:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "29/11/2026",
+    "time": "20:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "30/11/2026",
+    "time": "20:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "1/12/2026",
+    "time": "18:30",
+    "title": "FWF Radio Wien"
+  },
+  {
+    "date": "2/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "3/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "4/12/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "4/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "5/12/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "5/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "7/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "8/12/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "8/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "9/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "10/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "11/12/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "11/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "12/12/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "12/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "13/12/2026",
+    "time": "16:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "13/12/2026",
+    "time": "20:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "16/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "17/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "18/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "19/12/2026",
+    "time": "16:00",
+    "title": "DRACULA"
+  },
+  {
+    "date": "19/12/2026",
+    "time": "20:00",
+    "title": "DRACULA"
+  },
+  {
+    "date": "21/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "22/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "26/12/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "26/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "27/12/2026",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "28/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "29/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "30/12/2026",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "31/12/2026",
+    "time": "19:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "31/12/2026",
+    "time": "22:30",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "2/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "2/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "5/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "6/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "6/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "7/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "8/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "8/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "9/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "9/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "10/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "12/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "13/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "14/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "15/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "15/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "16/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "16/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "19/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "20/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "21/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "22/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "22/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "23/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "23/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "27/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "28/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "29/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "29/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "30/1/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "30/1/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "6/2/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "6/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "7/2/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "9/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "10/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "11/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "12/2/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "12/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "13/2/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "13/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "16/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "17/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "18/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "19/2/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "19/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "20/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "23/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "24/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "25/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "26/2/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "26/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "27/2/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "27/2/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "2/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "3/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "4/3/2027",
+    "time": "20:00",
+    "title": "DRACULA"
+  },
+  {
+    "date": "5/3/2027",
+    "time": "16:00",
+    "title": "DRACULA"
+  },
+  {
+    "date": "5/3/2027",
+    "time": "20:00",
+    "title": "DRACULA"
+  },
+  {
+    "date": "6/3/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "6/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "10/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "11/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "12/3/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "12/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "13/3/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "13/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "15/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "16/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "17/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "18/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "19/3/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "19/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "20/3/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "20/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "25/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "26/3/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "26/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "27/3/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "27/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "30/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "31/3/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "1/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "2/4/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "2/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "3/4/2027",
+    "time": "16:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "3/4/2027",
+    "time": "20:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "4/4/2027",
+    "time": "16:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "7/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "8/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "9/4/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "9/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "10/4/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "10/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "13/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "14/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "15/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "16/4/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "16/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "17/4/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "17/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "20/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "21/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "22/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "23/4/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "23/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "24/4/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "24/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "27/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "28/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "29/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "30/4/2027",
+    "time": "16:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "30/4/2027",
+    "time": "20:00",
+    "title": "ALLES BLEIBT ANDERS"
+  },
+  {
+    "date": "1/5/2027",
+    "time": "16:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "1/5/2027",
+    "time": "20:00",
+    "title": "Faust 4 - Sissi Edition"
+  },
+  {
+    "date": "2/5/2027",
+    "time": "16:00",
+    "title": "Faust 4 - Sissi Edition"
   }
 ]
