@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.1</div>
+                <div class="status">● Offline-App · V1.2</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -188,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <button id="apkDownloadLink" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
                                    📥 APK laden
                                 </button>
-                                <button id="updateBtn" class="btn" title="App-Cache leeren & aktualisieren">🔄 Update / Cache leeren</button>
+                                <button id="updateBtn" class="btn" title="App-Cache leeren & aktualisieren">🔄 Update App</button>
 
                             </div>
 
@@ -399,22 +399,27 @@ function isDoublePayDay(ds){
     return special(ds) === 'holiday';
 }
 
+// Saubere, zentrale Definition von getWeightedHours (unterstützt auch mehrere Einträge pro Tag korrekt)
 function getWeightedHours(ds, entry){
-    if(!hasHours(entry)) return 0;
+    let list = Array.isArray(entry) ? entry : getDayEntries(ds);
+    if(list.length === 0) return 0;
 
+    let total = 0;
     let m = ds.slice(0, 7);
     let weekly = S.monthlyWeeklyHours[m] !== undefined ? S.monthlyWeeklyHours[m] : (S.defaultWeeklyHours || 20);
     let dailyTarget = weekly / 5;
 
-    if (entry.type === 'vacation' || entry.type === 'sick') {
-        return dailyTarget;
+    for(let item of list) {
+        if (item.type === 'vacation' || item.type === 'sick') {
+            total += dailyTarget;
+        } else if (item.type === 'za') {
+            // 0 h
+        } else if (item.start && item.end) {
+            let base = hours(item.start, item.end);
+            total += isDoublePayDay(ds) ? base * 2 : base;
+        }
     }
-    if (entry.type === 'za') {
-        return 0;
-    }
-
-    let base = hours(entry.start, entry.end);
-    return isDoublePayDay(ds) ? base * 2 : base;
+    return total;
 }
 
 function getTargetHoursForMonth(monthKey){
@@ -471,7 +476,9 @@ function entryRow(ds, e, editable = false){
         } else if(item.type === 'sick') {
             hoursDisplay = `<span class="badge badge-krank">Krank</span>`;
         } else if(item.type === 'za') {
-            hoursDisplay = `<span class="badge badge-za">Zeitausgleich</span>`;
+            // Zeitausgleich: Zeige Badge und optional die Uhrzeit, falls eingetragen
+            let timeInfo = (item.start && item.end) ? `<br><small style="color: var(--text-muted);">${item.start} - ${item.end}</small>` : '';
+            hoursDisplay = `<span class="badge badge-za">Zeitausgleich</span>${timeInfo}`;
         } else if(item.start && item.end) {
             let base = hours(item.start, item.end);
             hoursDisplay = isDoublePayDay(ds) ? `${ht(base)} (2x)` : ht(base);
@@ -480,12 +487,11 @@ function entryRow(ds, e, editable = false){
         let noteHtml = item?.note ? `<br><small style="color: var(--text-muted); font-style: italic;">📝 ${item.note}</small>` : '';
         let isFirst = idx === 0;
 
-        // --- HIER WIRD DIE MITTERNACHTS-KENNZEICHNUNG GEMACHT ---
+        // Mitternachts-Kennzeichnung
         let endDisplay = item.end || '–';
         if (item.start && item.end && item.end < item.start) {
             endDisplay += ' <small style="color: var(--primary); font-weight: bold;">(+1)</small>';
         }
-        // ---------------------------------------------------------
 
         let editBtnHtml = editable ? `<button class="edit-btn" onclick="editEntry('${ds}', ${idx})" title="Dienst bearbeiten">⚙️</button>` : '';
 
@@ -543,7 +549,7 @@ function setType(type){
     });
     let timeFields = $('#timeInputFields');
     if(timeFields) {
-        timeFields.style.display = (type === 'work') ? 'block' : 'none';
+        timeFields.style.display = (type === 'work' || type === 'za') ? 'block' : 'none';
     }
 }
 
@@ -598,20 +604,27 @@ function editEntry(ds, index = 0){
     setTimeout(() => c.classList.remove('editing'), 1400);
 }
 
+// Korrigierte Wochenberechnung mit korrektem Wochenstart (Montag)
 function renderWeek(){
-    let d = parse($('#weekDate').value), day = d.getDay() || 7;
-    d.setDate(d.getDate() - day + 1);
+    let dateVal = $('#weekDate').value;
+    if(!dateVal) return;
+    let d = parse(dateVal);
+    let day = d.getDay();
+    // Korrektur für europäischen Wochenstart (Montag = 1, Sonntag = 7)
+    let diffToMonday = d.getDate() - day + (day === 0 ? -6 : 1);
+    let monday = new Date(d.setDate(diffToMonday));
+
     let rows = [], tot = 0;
     for(let i = 0; i < 7; i++){
-        let x = new Date(d);
-        x.setDate(d.getDate() + i);
+        let x = new Date(monday);
+        x.setDate(monday.getDate() + i);
         let ds = iso(x), e = S.entries[ds];
         if(hasHours(e)){
             tot += getWeightedHours(ds, e);
             rows.push(entryRow(ds, e, true));
         }
     }
-    $('#weekRows').innerHTML = rows.join('') || '<tr><td colspan="5">Keine Arbeitsstunden in dieser Woche.</td></tr>';
+    $('#weekRows').innerHTML = rows.join('') || '<tr><td colspan="5">Keine Arbeitsstunden in diesem Woche.</td></tr>';
     $('#weekTotal').textContent = 'Angerechnete Stunden: ' + ht(tot);
 
     document.querySelectorAll('#weekRows [data-edit]').forEach(b => b.onclick = () => editEntry(b.dataset.edit));
@@ -687,8 +700,9 @@ function pdfBlob(){
         lines = [],
         specialLines = [];
 
-    let totalIstHours = 0;
+let totalIstHours = 0;
     let totalSpecialHours = 0;
+    let totalZaHours = 0; // Neu: Zähler für Zeitausgleichsstunden
     let hmap = holidays(y);
 
     // Chronologische Schleife vom 1. bis zum letzten Tag des Monats
@@ -713,15 +727,22 @@ function pdfBlob(){
                 lines.push(`${dateStr}   Krank    ${ht(weighted)}${noteCol}`);
                 totalIstHours += weighted;
             } else if (item.type === 'za') {
-                lines.push(`${dateStr}   Zeitausgleich   0.00 h${noteCol}`);
+                let zaHoursDisplay = '0.00 h';
+                if (item.start && item.end) {
+                    let zaBase = hours(item.start, item.end);
+                    totalZaHours += zaBase;
+                    zaHoursDisplay = ht(zaBase);
+                }
+                let timeStr = (item.start && item.end) ? `${item.start} - ${item.end}   ` : '';
+                lines.push(`${dateStr}   ${timeStr}Zeitausgleich   ${zaHoursDisplay}${noteCol}`);
             } else if (item.start && item.end) {
                 let base = hours(item.start, item.end);
                 totalIstHours += base;
                 let displayHours = isDoublePayDay(ds) ? `${ht(base)} (2x)` : ht(base);
                 let endDisplay = item.end;
-                    if (item.start && item.end && item.end < item.start) {
-                        endDisplay += ' (+1)';
-                    }
+                if (item.start && item.end && item.end < item.start) {
+                    endDisplay += ' (+1)';
+                }
                 lines.push(`${dateStr}   ${item.start} - ${endDisplay}   ${displayHours}${noteCol}`);
 
                 if(isSun || h){
@@ -751,6 +772,10 @@ function pdfBlob(){
 
         if(p === Math.ceil(lines.length / per) - 1){
             s += ` 0 -25 Td (${esc('Gesamt Ist-Stunden: ' + ht(totalIstHours))}) Tj`;
+            // Neu: Zeitausgleich-Summe am Ende des PDFs ausgeben, falls Stunden vorhanden
+            if (totalZaHours > 0) {
+                s += ` 0 -18 Td (${esc('Gesamt Zeitausgleich-Stunden: ' + ht(totalZaHours))}) Tj`;
+            }
         }
         s += ' ET';
         streams.push(s);
@@ -1208,7 +1233,7 @@ function initApp(){
     let updateBtn = $('#updateBtn');
     if (updateBtn) {
         updateBtn.onclick = async () => {
-            if (confirm('Möchtest du den App-Cache leeren und die neueste Version laden? Deine gespeicherten Arbeitszeiten bleiben erhalten.')) {
+            if (confirm('Manuel nach Update Suchen?(Cache leeren) Deine gespeicherten Arbeitszeiten bleiben erhalten.')) {
                 try {
                     if ('serviceWorker' in navigator) {
                         const registrations = await navigator.serviceWorker.getRegistrations();
