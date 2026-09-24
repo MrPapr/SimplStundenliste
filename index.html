@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="de">
 <head>
-
+<!-- >Hier Versionsnummer Ändern bei CSS update</!-->
     <link rel="stylesheet" href="styles.css?v=1">
 
     <link rel="manifest" href="manifest.webmanifest">
@@ -20,6 +20,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Simpl Stunden">
 
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
 
     </style>
@@ -47,8 +50,8 @@
             <small id="who"></small>
         </div>
     </header>
-
-    <div class="status">● Offline-App · V2.1</div>
+    <!-- >Hier Versionsnummer ändern bei app.js update</!-->
+    <div class="status">● Offline-App · V1.0</div>
 
     <nav>
         <button data-v="day" class="active">Tag</button>
@@ -208,8 +211,9 @@
         </section>
     </main>
 </div>
-
+<!-- >Hier Versionsnummer ändern bei app.js update</!-->
 <script src="app.js?v=1"></script>
+
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
