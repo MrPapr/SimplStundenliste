@@ -768,7 +768,7 @@ function initApp() {
 
     $('#backup').onclick = () => {
         const exportPayload = {
-            format: 'Simplicissimus-Offline-v5.7',
+            format: 'Simplicissimus-Offline',
             timestamp: new Date().toISOString(),
             data: S
         };
