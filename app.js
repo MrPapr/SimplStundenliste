@@ -710,6 +710,51 @@ function fetchTheaterSchedule() {
         .catch(() => console.log('Offline: Nutze lokalen Spielplan.'));
 }
 
+function parseDateString(dateStr) {
+    if (!dateStr) return null;
+
+    let cleanStr = dateStr.toString().trim();
+    let parts = cleanStr.split(/[\/\.\-]/);
+
+    if (parts.length === 3) {
+        let p0 = parseInt(parts[0], 10);
+        let p1 = parseInt(parts[1], 10);
+        let p2 = parseInt(parts[2], 10);
+
+        let day, month, year;
+
+        // Prüfen ob Jahr am Anfang steht (z.B. 2027-04-30) oder am Ende (30.04.2027)
+        if (parts[0].length === 4) {
+            year = p0;
+            month = p1 - 1;
+            day = p2;
+        } else {
+            // Europäisches Format erzwingen: Tag . Monat . Jahr
+            day = p0;
+            month = p1 - 1; // 0 = Januar, 3 = April etc.
+            year = p2;
+        }
+
+        // WICHTIG: Date.UTC verhindert, dass Zeitzonen des Geräts das Datum verfälschen!
+        let utcDate = new Date(Date.UTC(year, month, day));
+        if (!isNaN(utcDate.getTime())) return utcDate;
+    }
+
+    let fallback = new Date(dateStr);
+    return isNaN(fallback.getTime()) ? null : fallback;
+}
+
+function formatDisplayDate(dateStr) {
+    let itemDate = parseDateString(dateStr);
+    if (!itemDate || isNaN(itemDate)) return dateStr;
+
+    let day = itemDate.getUTCDate();       // Nutzt UTC gegen Zeitzonen-Fehler
+    let month = itemDate.getUTCMonth() + 1; // Nutzt UTC gegen Zeitzonen-Fehler
+    let year = itemDate.getUTCFullYear();
+
+    return `${day}.${month}.${year}`;
+}
+
 function changeMonth(direction) {
     S.currentMonthOffset += direction;
     renderScheduleSection();
@@ -744,6 +789,18 @@ function getWeekNumber(d) {
     return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
 }
 
+// Hilfsfunktion: Formatiert das Datum für die Anzeige ohne führende Nullen (z.B. 1.9.2026)
+function formatDisplayDate(dateStr) {
+    let itemDate = parseDateString(dateStr);
+    if (!itemDate || isNaN(itemDate)) return dateStr;
+
+    let day = itemDate.getDate();        // z.B. 1 (ohne führende Null)
+    let month = itemDate.getMonth() + 1; // z.B. 9 (ohne führende Null)
+    let year = itemDate.getFullYear();   // z.B. 2026
+
+    return `${day}.${month}.${year}`;
+}
+
 function renderScheduleSection() {
     let container = $('#scheduleListContainer');
     let label = $('#currentMonthLabel');
@@ -761,7 +818,7 @@ function renderScheduleSection() {
     let year = targetDate.getFullYear();
     let month = targetDate.getMonth();
 
-    // Monatslabel aktualisieren (z.B. "Juni 2026")
+    // Monatslabel aktualisieren
     if (label) {
         let monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
         label.textContent = `${monthNames[month]} ${year}`;
@@ -790,15 +847,17 @@ function renderScheduleSection() {
         let currentWeekNo = itemDate ? getWeekNumber(itemDate) : null;
         let weekdayName = itemDate ? itemDate.toLocaleDateString('de-DE', { weekday: 'short' }) : '';
 
-        // Freie Zeile / Trennlinie einfügen, sobald eine neue Woche (Montag) beginnt
+        // DEUTLICHER WOCHENABSTAND: Größerer Abstand und kräftigere Trennlinie
         if (index > 0 && currentWeekNo !== lastWeekNo) {
-            html += `<tr><td colspan="2" style="padding: 6px 0; border-bottom: 1px dashed var(--border-color, #444);"></td></tr>`;
+            html += `<tr><td colspan="2" style="padding: 18px 0 8px 0;">
+                <div style="border-top: 2px solid var(--border-color, #666);"></div>
+            </td></tr>`;
         }
         lastWeekNo = currentWeekNo;
 
         html += `<tr style="border-bottom: 1px solid var(--border-color);">
             <td style="padding: 10px 8px; width: 35%; vertical-align: top;">
-                <div style="font-weight: bold;">${weekdayName}, ${item.date || ''}</div>
+                <div style="font-weight: bold;">${weekdayName}, ${formatDisplayDate(item.date)}</div>
             </td>
             <td style="padding: 10px 8px; vertical-align: top;">
                 <strong>${item.title || ''}</strong><br>
