@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.1.14</div>
+                <div class="status">● Offline-App · V1.1.15</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -185,9 +185,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="settings-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
                             <label>Android App</label>
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px;">
-                                <button id="apkDownloadLink" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
+                                <a id="apkDownloadLink" href="https://github.com/MrPapr/SimplStundenliste/releases/latest" target="_blank" class="btn-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
                                    📥 APK laden
-                                </button>
+                                </a>
                                 <button onclick="forceManualUpdate()" class="update-btn-style">
                                     🔄 Update App
                                 </button>
@@ -1232,15 +1232,6 @@ function initApp(){
             e.target.value = '';
         }
     };
-    // Manueller Update-Button innerhalb der App
-        let updateBtn = $('#updateBtn');
-        if (updateBtn) {
-            updateBtn.onclick = () => {
-                if (confirm('Manuell nach Update suchen? (Cache leeren)\nDeine gespeicherten Arbeitszeiten bleiben erhalten.')) {
-                    triggerAppUpdate();
-                }
-            };
-        }
 }
 
 function openApp(){
@@ -1251,12 +1242,6 @@ function openApp(){
     if($('#name')) $('#name').value = S.name;
     if($('#defaultWeeklyHours')) $('#defaultWeeklyHours').value = S.defaultWeeklyHours || 20;
     if($('#initialBalance')) $('#initialBalance').value = S.initialBalance || 0;
-
-    let apkLink = $('#apkDownloadLink');
-    if(apkLink) {
-        apkLink.href = "https://github.com/MrPapr/SimplStundenliste/releases/latest";
-    }
-
     render();
 }
 
@@ -1277,8 +1262,10 @@ function forceManualUpdate() {
 
     // 2. Kurzer Timeout (z. B. 400 Millisekunden), damit der Nutzer die Meldung kurz sehen kann
     setTimeout(() => {
-        const cleanUrl = window.location.origin + window.location.pathname;
-        window.location.href = `${cleanUrl}?update=${Date.now()}`;
-    }, 400);
+            // Nimm die aktuelle URL inklusive Hash und hänge den Update-Parameter an
+            const currentUrl = window.location.href.split('?')[0]; // eventuelle alte Parameter entfernen
+            const hash = window.location.hash;
+            window.location.href = `${currentUrl}?update=${Date.now()}${hash}`;
+        }, 400);
 }
 
