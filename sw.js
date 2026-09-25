@@ -27,9 +27,28 @@ self.addEventListener('activate', (event) => {
 });
 
 // Stale-While-Revalidate für normale Fetch-Anfragen
+// Verbesserter Fetch-Handler: HTML immer frisch vom Netz, Assets per SWR
 self.addEventListener('fetch', (event) => {
   if (!event.request.url.startsWith('http')) return;
 
+  // Wenn es sich um eine HTML-Seitenanfrage handelt -> Network First!
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, networkResponse.clone());
+            return networkResponse;
+          });
+        })
+        .catch(() => {
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Für alle anderen Dateien (CSS, JS, Bilder) gilt weiterhin Stale-While-Revalidate
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.match(event.request).then((cachedResponse) => {

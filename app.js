@@ -1319,12 +1319,12 @@ async function triggerAppUpdate(newVersion = null) {
         console.warn('Caches konnten nicht gelöscht werden:', err);
     }
 
-    // 3. EGAL OB FEHLER ODER NICHT: Immer den WebView-Cache mit Zeitstempel umgehen!
-    // Das ist der wichtigste Schritt für die Android-App, damit sie frisch lädt.
-    const cleanUrl = window.location.origin + window.location.pathname;
-    window.location.href = `${cleanUrl}?update=${Date.now()}`;
+    // 3. WICHTIG: 300ms warten, damit Android den Cache-Löschbefehl auf der Festplatte speichert
+    setTimeout(() => {
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.location.href = `${cleanUrl}?update=${Date.now()}`;
+    }, 300);
 }
-
 // 4. Banner anzeigen
 function showUpdateBanner(newVersion) {
   if (document.getElementById('update-banner')) return;
