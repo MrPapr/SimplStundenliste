@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.1.12</div>
+                <div class="status">● Offline-App · V1.1.13</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -188,7 +188,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <button id="apkDownloadLink" href="#" target="_blank" class="btn-secondary" style="text-decoration: none; padding: 6px 12px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 5px;">
                                    📥 APK laden
                                 </button>
-                                <button id="updateBtn" class="btn" title="App-Cache leeren & aktualisieren">🔄 Update App</button>
+                                <button onclick="forceManualUpdate()" class="update-btn-style">
+                                    🔄 Update App
+                                </button>
 
                             </div>
 
@@ -1258,124 +1260,25 @@ function openApp(){
     render();
 }
 
+function forceManualUpdate() {
+    // 1. Optional: Dem Nutzer eine kurze Meldung anzeigen
+    // (Falls du ein Element für Meldungen hast, kannst du den Text setzen,
+    // oder alternativ einen kleinen alert nutzen)
 
-// 1. Service Worker registrieren
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then((reg) => {
-        console.log('Service Worker erfolgreich registriert mit Scope:', reg.scope);
-      })
-      .catch((err) => {
-        console.error('Service Worker Registrierung fehlgeschlagen:', err);
-      });
-  });
-}
-
-// 2. Versions-Check gegen die version.json
-async function checkForUpdates() {
-  try {
-    const response = await fetch('./version.json', { cache: 'no-store' });
-    if (!response.ok) return;
-
-    const data = await response.json();
-    const serverVersion = data.version;
-
-    const localVersion = localStorage.getItem('app_version');
-
-    if (!localVersion) {
-      localStorage.setItem('app_version', serverVersion);
-    } else if (localVersion !== serverVersion) {
-      // Update anzeigen und die neue Version übergeben
-      showUpdateBanner(serverVersion);
-    }
-  } catch (error) {
-    console.log('Konnte nicht nach Updates suchen (offline?):', error);
-  }
-}
-
-// Zentrale Update-Funktion (Absolut robust für APK & Browser)
-async function triggerAppUpdate(newVersion = null) {
-    try {
-        // WICHTIG: Wenn keine Version übergeben wurde (z.B. aus den Einstellungen),
-        // holen wir sie frisch, damit localStorage danach definitiv übereinstimmt!
-        if (!newVersion) {
-            const res = await fetch('./version.json', { cache: 'no-store' });
-            if (res.ok) {
-                const data = await res.json();
-                newVersion = data.version;
-            }
-        }
-
-        if (newVersion) {
-            localStorage.setItem('app_version', newVersion);
-        }
-    } catch (err) {
-        console.warn('Konnte Versionsnummer vor Update nicht sichern:', err);
+    // Beispiel mit einem Element (falls vorhanden, z.B. ein Lade-Text):
+    const statusMsg = document.getElementById('statusMessage'); // Passe die ID an dein HTML an
+    if (statusMsg) {
+        statusMsg.innerText = '🔄 Update wird geladen...';
+        statusMsg.style.display = 'block';
+    } else {
+        // Falls kein spezielles Element da ist, reicht auch ein kurzes Feedback
+        console.log('Update wird ausgeführt...');
     }
 
-    // Android WebView-Cache leeren, falls in der App
-    if (typeof AndroidDownload !== 'undefined' && typeof AndroidDownload.clearAppCache === 'function') {
-        AndroidDownload.clearAppCache();
-    }
-
-    try {
-        if ('serviceWorker' in navigator) {
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            for (let registration of registrations) {
-                await registration.unregister();
-            }
-        }
-    } catch (err) {
-        console.warn('Service Worker konnte nicht abgemeldet werden:', err);
-    }
-
-    try {
-        if ('caches' in window) {
-            const keys = await caches.keys();
-            for (let key of keys) {
-                await caches.delete(key);
-            }
-        }
-    } catch (err) {
-        console.warn('Caches konnten nicht gelöscht werden:', err);
-    }
-
-    // 300ms warten, damit Android den Cache-Löschbefehl auf der Festplatte speichert
+    // 2. Kurzer Timeout (z. B. 400 Millisekunden), damit der Nutzer die Meldung kurz sehen kann
     setTimeout(() => {
         const cleanUrl = window.location.origin + window.location.pathname;
         window.location.href = `${cleanUrl}?update=${Date.now()}`;
-    }, 300);
+    }, 400);
 }
 
-// 4. Banner anzeigen
-function showUpdateBanner(newVersion) {
-  if (document.getElementById('update-banner')) return;
-
-  const banner = document.createElement('div');
-  banner.id = 'update-banner';
-  banner.innerHTML = `
-    <span>Neue Version (${newVersion}) verfügbar!</span>
-    <button id="update-btn" style="margin-left: 10px; padding: 6px 12px; cursor: pointer; background: #ffcc00; color: #000; border: none; border-radius: 4px; font-weight: bold;">Aktualisieren</button>
-  `;
-  banner.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 10000; font-family: sans-serif; display: flex; align-items: center;';
-
-  document.body.appendChild(banner);
-
-  // Banner-Button ruft jetzt ebenfalls die sichere Update-Funktion auf
-  document.getElementById('update-btn').onclick = () => {
-    triggerAppUpdate(newVersion);
-  };
-}
-
-// --- Start-Routinen ---
-
-// Beim Start der App prüfen
-checkForUpdates();
-
-// Prüfen, wenn der Nutzer die App auf dem Handy wieder in den Vordergrund holt
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    checkForUpdates();
-  }
-});
