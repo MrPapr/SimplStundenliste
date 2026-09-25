@@ -1,10 +1,10 @@
-const CACHE_NAME = 'simplicissimus-v1.1.1'; // Passe das bei jedem großen Update an oder nutze eine Versionsvariable
+const CACHE_NAME = 'simplicissimus-v1.1.1'; // Bei jedem größeren Update anpassen
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './styles.css',
   './app.js',
-  './version.json',   // WICHTIG: version.json mit in den Cache aufnehmen
+  './version.json',
   './simp-logo.png'
 ];
 
@@ -28,12 +28,11 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Verbesserter Fetch-Handler
+// Verbesserter Fetch-Handler (Alles per Network First mit Offline-Fallback)
 self.addEventListener('fetch', (event) => {
   if (!event.request.url.startsWith('http')) return;
 
-  // 1. WICHTIG: version.json IMMER direkt vom Netzwerk laden (kein Cache!),
-  // damit der Update-Check sofort greift.
+  // 1. version.json IMMER direkt vom Netzwerk laden (kein Cache!)
   if (event.request.url.includes('version.json')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
@@ -41,35 +40,20 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Wenn es sich um eine HTML-Seitenanfrage handelt -> Network First!
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-          });
-        })
-        .catch(() => {
-          return caches.match(event.request);
-        })
-    );
-    return;
-  }
-
-  // 3. Für alle anderen Dateien (CSS, JS, Bilder) gilt Stale-While-Revalidate
+  // 2. Für HTML, CSS, JS und alle anderen Dateien: Network First!
   event.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(event.request).then((cachedResponse) => {
-        const fetchPromise = fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        }).catch(() => {});
-        return cachedResponse || fetchPromise;
-      });
-    })
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
