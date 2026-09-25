@@ -1322,12 +1322,29 @@ function showUpdateBanner(newVersion) {
 
   document.body.appendChild(banner);
 
-  document.getElementById('update-btn').addEventListener('click', () => {
-    // Neue Version im LocalStorage speichern, damit das Banner verschwindet
-    localStorage.setItem('app_version', newVersion);
-    // Cache leeren und Seite neu laden
-    window.location.reload();
-  });
+  document.getElementById('update-btn').addEventListener('click', async () => {
+      // 1. Neue Version speichern
+      localStorage.setItem('app_version', newVersion);
+
+      // 2. Allen Browser-Cache (Caches API) komplett löschen
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map((cacheName) => caches.delete(cacheName))
+        );
+      }
+
+      // 3. Optional: Auch den Service Worker direkt abmelden, damit er sich frisch holt
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let registration of registrations) {
+          await registration.unregister();
+        }
+      }
+
+      // 4. Seite hart neu laden (erzwingt frischen Server-Abruf)
+      window.location.reload(true);
+    });
 }
 
 // Prüfen beim Start der App
