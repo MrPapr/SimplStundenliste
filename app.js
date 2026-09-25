@@ -1291,16 +1291,30 @@ async function checkForUpdates() {
 
 // Zentrale Update-Funktion (Absolut robust für APK & Browser)
 async function triggerAppUpdate(newVersion = null) {
-    // 1. Neue Version für das Banner sofort speichern, falls übergeben
-    if (newVersion) {
-        localStorage.setItem('app_version', newVersion);
-    }
-    if (typeof AndroidDownload !== 'undefined' && typeof AndroidDownload.clearAppCache === 'function') {
-            AndroidDownload.clearAppCache();
+    try {
+        // WICHTIG: Wenn keine Version übergeben wurde (z.B. aus den Einstellungen),
+        // holen wir sie frisch, damit localStorage danach definitiv übereinstimmt!
+        if (!newVersion) {
+            const res = await fetch('./version.json', { cache: 'no-store' });
+            if (res.ok) {
+                const data = await res.json();
+                newVersion = data.version;
+            }
         }
 
+        if (newVersion) {
+            localStorage.setItem('app_version', newVersion);
+        }
+    } catch (err) {
+        console.warn('Konnte Versionsnummer vor Update nicht sichern:', err);
+    }
+
+    // Android WebView-Cache leeren, falls in der App
+    if (typeof AndroidDownload !== 'undefined' && typeof AndroidDownload.clearAppCache === 'function') {
+        AndroidDownload.clearAppCache();
+    }
+
     try {
-        // Versuch 1: Service Worker abmelden
         if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (let registration of registrations) {
@@ -1312,7 +1326,6 @@ async function triggerAppUpdate(newVersion = null) {
     }
 
     try {
-        // Versuch 2: Caches löschen
         if ('caches' in window) {
             const keys = await caches.keys();
             for (let key of keys) {
@@ -1323,12 +1336,13 @@ async function triggerAppUpdate(newVersion = null) {
         console.warn('Caches konnten nicht gelöscht werden:', err);
     }
 
-    // 3. WICHTIG: 300ms warten, damit Android den Cache-Löschbefehl auf der Festplatte speichert
+    // 300ms warten, damit Android den Cache-Löschbefehl auf der Festplatte speichert
     setTimeout(() => {
         const cleanUrl = window.location.origin + window.location.pathname;
         window.location.href = `${cleanUrl}?update=${Date.now()}`;
     }, 300);
 }
+
 // 4. Banner anzeigen
 function showUpdateBanner(newVersion) {
   if (document.getElementById('update-banner')) return;
