@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.1</div>
+                <div class="status">● Offline-App · V1.7</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -1345,21 +1345,6 @@ document.getElementById('update-btn').addEventListener('click', async () => {
     // 4. Seite hart neu laden (erzwingt frischen Server-Abruf)
     window.location.reload(true);
   });
-  }
-
-  // 3. WICHTIG FÜR APK: Alten Service Worker abmelden & kurz warten
-  if ('serviceWorker' in navigator) {
-    const registrations = await navigator.serviceWorker.getRegistrations();
-    for (let registration of registrations) {
-      await registration.unregister();
-    }
-  }
-
-  // 4. Einzigartige URL mit Timestamp aufrufen, um WebView-Cache zu umgehen
-  // Der Parameter '?update=...' zwingt die WebView dazu, die echte neue Datei zu laden
-  const cleanUrl = window.location.origin + window.location.pathname;
-  window.location.href = `${cleanUrl}?update=${Date.now()}`;
-});
 }
 
 // Prüfen beim Start der App
