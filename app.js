@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.4</div>
+                <div class="status">● Offline-App · V1.5</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -1274,26 +1274,68 @@ function openApp(){
     render();
 }
 
+
+// 1. Service Worker registrieren
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .then((registration) => {
-        console.log('Service Worker erfolgreich registriert:', registration.scope);
-
-        // Optional: Automatisch neu laden, wenn ein Update da ist
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('Neues Update verfügbar, lade neu...');
-              window.location.reload();
-            }
-          });
-        });
-
-      })
-      .catch((error) => {
-        console.error('Service Worker Registrierung fehlgeschlagen:', error);
-      });
+      .catch((err) => console.error('SW Fehler:', err));
   });
 }
+
+// 2. Versions-Check gegen die version.json
+async function checkForUpdates() {
+  try {
+    // { cache: 'no-store' } zwingt den Browser, die echte Datei vom Server zu holen
+    const response = await fetch('./version.json', { cache: 'no-store' });
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const serverVersion = data.version;
+
+    // Gespeicherte Version im Browser (LocalStorage) holen
+    const localVersion = localStorage.getItem('app_version');
+
+    if (!localVersion) {
+      // Beim allerersten Start einfach abspeichern
+      localStorage.setItem('app_version', serverVersion);
+    } else if (localVersion !== serverVersion) {
+      // Server-Version weicht von lokaler Version ab -> Update anzeigen!
+      showUpdateBanner(serverVersion);
+    }
+  } catch (error) {
+    console.log('Konnte nicht nach Updates suchen (offline?):', error);
+  }
+}
+
+// Banner anzeigen
+function showUpdateBanner(newVersion) {
+  if (document.getElementById('update-banner')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'update-banner';
+  banner.innerHTML = `
+    <span>Neue Version (${newVersion}) verfügbar!</span>
+    <button id="update-btn" style="margin-left: 10px; padding: 6px 12px; cursor: pointer; background: #ffcc00; color: #000; border: none; border-radius: 4px; font-weight: bold;">Aktualisieren</button>
+  `;
+  banner.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); z-index: 10000; font-family: sans-serif; display: flex; align-items: center;';
+
+  document.body.appendChild(banner);
+
+  document.getElementById('update-btn').addEventListener('click', () => {
+    // Neue Version im LocalStorage speichern, damit das Banner verschwindet
+    localStorage.setItem('app_version', newVersion);
+    // Cache leeren und Seite neu laden
+    window.location.reload();
+  });
+}
+
+// Prüfen beim Start der App
+checkForUpdates();
+
+// Optional: Auch prüfen, wenn der Nutzer die App auf dem Handy wieder öffnet (Tab-Wechsel)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    checkForUpdates();
+  }
+});
