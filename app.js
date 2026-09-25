@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.1.1</div>
+                <div class="status">● Offline-App · V1.1.2</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -1230,7 +1230,8 @@ function initApp(){
             e.target.value = '';
         }
     };
-    let updateBtn = $('#updateBtn');
+    // Manueller Update-Button innerhalb der App
+        let updateBtn = $('#updateBtn');
         if (updateBtn) {
             updateBtn.onclick = () => {
                 if (confirm('Manuell nach Update suchen? (Cache leeren)\nDeine gespeicherten Arbeitszeiten bleiben erhalten.')) {
@@ -1343,16 +1344,6 @@ function showUpdateBanner(newVersion) {
   document.getElementById('update-btn').onclick = () => {
     triggerAppUpdate(newVersion);
   };
-}
-
-// 5. Manueller Button in den Einstellungen (mit Bestätigung)
-let settingsUpdateBtn = document.getElementById('settingsUpdateBtn');
-if (settingsUpdateBtn) {
-    settingsUpdateBtn.onclick = () => {
-        if (confirm('Manuell nach Update suchen? (Cache leeren)\nDeine gespeicherten Arbeitszeiten bleiben erhalten.')) {
-            triggerAppUpdate();
-        }
-    };
 }
 
 // --- Start-Routinen ---

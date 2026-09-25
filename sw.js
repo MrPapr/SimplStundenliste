@@ -1,9 +1,11 @@
-const CACHE_NAME = 'app-cache-v1';
+const CACHE_NAME = 'simplicissimus-v1.1.1'; // Passe das bei jedem großen Update an oder nutze eine Versionsvariable
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './styles.css',
-  './app.js'
+  './app.js',
+  './version.json',   // WICHTIG: version.json mit in den Cache aufnehmen
+  './simp-logo.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -26,12 +28,20 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Stale-While-Revalidate für normale Fetch-Anfragen
-// Verbesserter Fetch-Handler: HTML immer frisch vom Netz, Assets per SWR
+// Verbesserter Fetch-Handler
 self.addEventListener('fetch', (event) => {
   if (!event.request.url.startsWith('http')) return;
 
-  // Wenn es sich um eine HTML-Seitenanfrage handelt -> Network First!
+  // 1. WICHTIG: version.json IMMER direkt vom Netzwerk laden (kein Cache!),
+  // damit der Update-Check sofort greift.
+  if (event.request.url.includes('version.json')) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // 2. Wenn es sich um eine HTML-Seitenanfrage handelt -> Network First!
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
@@ -48,7 +58,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Für alle anderen Dateien (CSS, JS, Bilder) gilt weiterhin Stale-While-Revalidate
+  // 3. Für alle anderen Dateien (CSS, JS, Bilder) gilt Stale-While-Revalidate
   event.respondWith(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.match(event.request).then((cachedResponse) => {
