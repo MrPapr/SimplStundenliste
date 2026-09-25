@@ -1,4 +1,4 @@
-const CACHE_NAME = 'silent-updates-cache-v1';
+const CACHE_NAME = 'silent-updates-cache-v2';
 
 // WICHTIG: Relative Pfade für GitHub Pages mit './'
 const PRECACHE_ASSETS = [
