@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.6</div>
+                <div class="status">● Offline-App · V1.7</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
