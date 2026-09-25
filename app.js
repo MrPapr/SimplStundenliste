@@ -1273,3 +1273,27 @@ function openApp(){
 
     render();
 }
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((registration) => {
+        console.log('Service Worker erfolgreich registriert:', registration.scope);
+
+        // Optional: Automatisch neu laden, wenn ein Update da ist
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('Neues Update verfügbar, lade neu...');
+              window.location.reload();
+            }
+          });
+        });
+
+      })
+      .catch((error) => {
+        console.error('Service Worker Registrierung fehlgeschlagen:', error);
+      });
+  });
+}
