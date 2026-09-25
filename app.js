@@ -1295,6 +1295,9 @@ async function triggerAppUpdate(newVersion = null) {
     if (newVersion) {
         localStorage.setItem('app_version', newVersion);
     }
+    if (typeof AndroidDownload !== 'undefined' && typeof AndroidDownload.clearAppCache === 'function') {
+            AndroidDownload.clearAppCache();
+        }
 
     try {
         // Versuch 1: Service Worker abmelden
