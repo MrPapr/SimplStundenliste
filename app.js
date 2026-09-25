@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.7</div>
+                <div class="status">● Offline-App · V1.8</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -1322,29 +1322,31 @@ function showUpdateBanner(newVersion) {
 
   document.body.appendChild(banner);
 
-  document.getElementById('update-btn').addEventListener('click', async () => {
-      // 1. Neue Version speichern
-      localStorage.setItem('app_version', newVersion);
+document.getElementById('update-btn').addEventListener('click', async () => {
+  // 1. Neue Version im LocalStorage vermerken
+  localStorage.setItem('app_version', newVersion);
 
-      // 2. Allen Browser-Cache (Caches API) komplett löschen
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(
-          cacheNames.map((cacheName) => caches.delete(cacheName))
-        );
-      }
+  // 2. Service Worker Cache (Cache Storage API) löschen
+  if ('caches' in window) {
+    const cacheNames = await caches.keys();
+    await Promise.all(
+      cacheNames.map((cacheName) => caches.delete(cacheName))
+    );
+  }
 
-      // 3. Optional: Auch den Service Worker direkt abmelden, damit er sich frisch holt
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (let registration of registrations) {
-          await registration.unregister();
-        }
-      }
+  // 3. WICHTIG FÜR APK: Alten Service Worker abmelden & kurz warten
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    for (let registration of registrations) {
+      await registration.unregister();
+    }
+  }
 
-      // 4. Seite hart neu laden (erzwingt frischen Server-Abruf)
-      window.location.reload(true);
-    });
+  // 4. Einzigartige URL mit Timestamp aufrufen, um WebView-Cache zu umgehen
+  // Der Parameter '?update=...' zwingt die WebView dazu, die echte neue Datei zu laden
+  const cleanUrl = window.location.origin + window.location.pathname;
+  window.location.href = `${cleanUrl}?update=${Date.now()}`;
+});
 }
 
 // Prüfen beim Start der App
