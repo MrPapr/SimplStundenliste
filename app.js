@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.1.2</div>
+                <div class="status">● Offline-App · V1.1.3</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -1305,38 +1305,41 @@ async function checkForUpdates() {
   }
 }
 
-// 3. Zentrale Update-Funktion (Für APK & Web-App optimiert)
+// Zentrale Update-Funktion (Absolut robust für APK & Browser)
 async function triggerAppUpdate(newVersion = null) {
-    // Wenn das Banner geklickt wurde, speichern wir die neue Version vorab
+    // 1. Neue Version für das Banner sofort speichern, falls übergeben
     if (newVersion) {
         localStorage.setItem('app_version', newVersion);
     }
 
     try {
-        // Service Worker abmelden
+        // Versuch 1: Service Worker abmelden
         if ('serviceWorker' in navigator) {
             const registrations = await navigator.serviceWorker.getRegistrations();
             for (let registration of registrations) {
                 await registration.unregister();
             }
         }
+    } catch (err) {
+        console.warn('Service Worker konnte nicht abgemeldet werden:', err);
+    }
 
-        // Caches löschen
+    try {
+        // Versuch 2: Caches löschen
         if ('caches' in window) {
             const keys = await caches.keys();
             for (let key of keys) {
                 await caches.delete(key);
             }
         }
-
-        // WebView-Cache & Browser-Cache mit Zeitstempel umgehen (Wichtig für APK!)
-        const cleanUrl = window.location.origin + window.location.pathname;
-        window.location.href = `${cleanUrl}?update=${Date.now()}`;
-
     } catch (err) {
-        console.error('Fehler beim Leeren des Caches:', err);
-        window.location.reload();
+        console.warn('Caches konnten nicht gelöscht werden:', err);
     }
+
+    // 3. EGAL OB FEHLER ODER NICHT: Immer den WebView-Cache mit Zeitstempel umgehen!
+    // Das ist der wichtigste Schritt für die Android-App, damit sie frisch lädt.
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.location.href = `${cleanUrl}?update=${Date.now()}`;
 }
 
 // 4. Banner anzeigen
