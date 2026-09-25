@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.1.15</div>
+                <div class="status">● Offline-App · V1.1.16</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -949,12 +949,26 @@ function renderScheduleSection() {
         return;
     }
 
+    // Einträge nach Datum gruppieren (gleiche Daten zusammenfassen)
+    let groupedSchedule = [];
+    filteredSchedule.forEach(item => {
+        let lastGroup = groupedSchedule[groupedSchedule.length - 1];
+        if (lastGroup && lastGroup.dateStr === item.date) {
+            lastGroup.events.push({ title: item.title, time: item.time });
+        } else {
+            groupedSchedule.push({
+                dateStr: item.date,
+                events: [{ title: item.title, time: item.time }]
+            });
+        }
+    });
+
     // Tabelle aufbauen
     let html = `<table style="width: 100%; border-collapse: collapse;">`;
     let lastWeekNo = null;
 
-    filteredSchedule.forEach((item, index) => {
-        let itemDate = parseDateString(item.date);
+    groupedSchedule.forEach((group, index) => {
+        let itemDate = parseDateString(group.dateStr);
         let currentWeekNo = itemDate ? getWeekNumber(itemDate) : null;
 
         // Wochentag im UTC-Modus ermitteln
@@ -971,29 +985,46 @@ function renderScheduleSection() {
         let holidayName = holidayList[isoStr];
         let isSunday = itemDate ? itemDate.getUTCDay() === 0 : false;
 
-        // Rote Markierung aktivieren, wenn Feiertag ODER Sonntag
         let isSpecialDay = holidayName || isSunday;
         let dateColorStyle = isSpecialDay ? 'color: #ff5252;' : '';
-
-        // Feiertags-Name als Zusatztext (optional auch für Sonntage anpassbar)
         let specialInfoHTML = holidayName ? `<br><small style="color: ${isSpecialDay ? '#ff5252' : 'var(--text-muted)'}; font-style: italic;">${holidayName}</small>` : '';
 
-        // Deutlicher Wochenabstand mit dicker Linie
+        // 💡 DEUTLICHER WOCHENWECHSEL: Linie + optionaler KW-Hinweis ab dem 2. Eintrag einer neuen Woche
         if (index > 0 && currentWeekNo !== lastWeekNo) {
-            html += `<tr><td colspan="2" style="padding: 18px 0 8px 0;">
-                <div style="border-top: 2px solid var(--border-color, #666);"></div>
+            html += `<tr><td colspan="2" style="padding: 24px 0 12px 0;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="flex-grow: 1; border-top: 3px double var(--accent-color, #ffcc00);"></div>
+                    <span style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">KW ${currentWeekNo}</span>
+                    <div style="flex-grow: 1; border-top: 3px double var(--accent-color, #ffcc00);"></div>
+                </div>
+            </td></tr>`;
+        } else if (index === 0 && currentWeekNo !== null) {
+            // Optional: Auch ganz oben im Monat dezent die KW anzeigen, wenn gewünscht
+            html += `<tr><td colspan="2" style="padding: 4px 0 8px 0;">
+                <span style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">KW ${currentWeekNo}</span>
             </td></tr>`;
         }
         lastWeekNo = currentWeekNo;
 
+        // Alle Vorstellungen für diesen Tag generieren
+        let eventsHtml = '';
+        group.events.forEach((ev, evIndex) => {
+            let marginStyle = evIndex > 0 ? 'margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color, #444);' : '';
+            eventsHtml += `
+                <div style="${marginStyle}">
+                    <strong>${ev.title || ''}</strong><br>
+                    <small style="color: var(--text-muted);">${ev.time || ''}</small>
+                </div>
+            `;
+        });
+
         html += `<tr style="border-bottom: 1px solid var(--border-color);">
             <td style="padding: 10px 8px; width: 35%; vertical-align: top;">
-                <div style="font-weight: bold; ${dateColorStyle}">${weekdayName}, ${formatDisplayDate(item.date)}</div>
+                <div style="font-weight: bold; ${dateColorStyle}">${weekdayName}, ${formatDisplayDate(group.dateStr)}</div>
                 ${specialInfoHTML}
             </td>
             <td style="padding: 10px 8px; vertical-align: top;">
-                <strong>${item.title || ''}</strong><br>
-                <small style="color: var(--text-muted);">${item.time || ''}</small>
+                ${eventsHtml}
             </td>
         </tr>`;
     });
