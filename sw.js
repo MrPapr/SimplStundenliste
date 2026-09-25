@@ -1,4 +1,4 @@
-const CACHE_NAME = 'simplicissimus-v1.1.2'; // Bei Updates erhöhen
+const CACHE_NAME = 'simplicissimus-v1.1.3'; // Bei Updates erhöhen
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const PRECACHE_ASSETS = [
   './version.json',
   './simp-logo.png'
 ];
+
 
 // 1. Installieren und sicher cachen (einzeln, damit ein Fehler nicht alles blockiert)
 self.addEventListener('install', (event) => {

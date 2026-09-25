@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.1.11</div>
+                <div class="status">● Offline-App · V1.1.12</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -1263,7 +1263,12 @@ function openApp(){
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
-      .catch((err) => console.error('SW Fehler:', err));
+      .then((reg) => {
+        console.log('Service Worker erfolgreich registriert mit Scope:', reg.scope);
+      })
+      .catch((err) => {
+        console.error('Service Worker Registrierung fehlgeschlagen:', err);
+      });
   });
 }
 
