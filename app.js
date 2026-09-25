@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.1.4</div>
+                <div class="status">● Offline-App · V1.1.5</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -1231,30 +1231,13 @@ function initApp(){
         }
     };
     let updateBtn = $('#updateBtn');
-    if (updateBtn) {
-        updateBtn.onclick = async () => {
-            if (confirm('Manuel nach Update Suchen?(Cache leeren) Deine gespeicherten Arbeitszeiten bleiben erhalten.')) {
-                try {
-                    if ('serviceWorker' in navigator) {
-                        const registrations = await navigator.serviceWorker.getRegistrations();
-                        for (let registration of registrations) {
-                            await registration.unregister();
-                        }
-                    }
-                    if ('caches' in window) {
-                        const keys = await caches.keys();
-                        for (let key of keys) {
-                            await caches.delete(key);
-                        }
-                    }
-                    window.location.reload(true);
-                } catch (err) {
-                    console.error('Fehler beim Leeren des Caches:', err);
-                    window.location.reload();
+        if (updateBtn) {
+            updateBtn.onclick = () => {
+                if (confirm('Manuell nach Update suchen? (Cache leeren)\nDeine gespeicherten Arbeitszeiten bleiben erhalten.')) {
+                    triggerAppUpdate();
                 }
-            }
-        };
-    }
+            };
+        }
 }
 
 function openApp(){
