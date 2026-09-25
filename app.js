@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.7</div>
+                <div class="status">● Offline-App · V1.1.1</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -1286,21 +1286,18 @@ if ('serviceWorker' in navigator) {
 // 2. Versions-Check gegen die version.json
 async function checkForUpdates() {
   try {
-    // { cache: 'no-store' } zwingt den Browser, die echte Datei vom Server zu holen
     const response = await fetch('./version.json', { cache: 'no-store' });
     if (!response.ok) return;
 
     const data = await response.json();
     const serverVersion = data.version;
 
-    // Gespeicherte Version im Browser (LocalStorage) holen
     const localVersion = localStorage.getItem('app_version');
 
     if (!localVersion) {
-      // Beim allerersten Start einfach abspeichern
       localStorage.setItem('app_version', serverVersion);
     } else if (localVersion !== serverVersion) {
-      // Server-Version weicht von lokaler Version ab -> Update anzeigen!
+      // Update anzeigen und die neue Version übergeben
       showUpdateBanner(serverVersion);
     }
   } catch (error) {
@@ -1308,7 +1305,41 @@ async function checkForUpdates() {
   }
 }
 
-// Banner anzeigen
+// 3. Zentrale Update-Funktion (Für APK & Web-App optimiert)
+async function triggerAppUpdate(newVersion = null) {
+    // Wenn das Banner geklickt wurde, speichern wir die neue Version vorab
+    if (newVersion) {
+        localStorage.setItem('app_version', newVersion);
+    }
+
+    try {
+        // Service Worker abmelden
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (let registration of registrations) {
+                await registration.unregister();
+            }
+        }
+
+        // Caches löschen
+        if ('caches' in window) {
+            const keys = await caches.keys();
+            for (let key of keys) {
+                await caches.delete(key);
+            }
+        }
+
+        // WebView-Cache & Browser-Cache mit Zeitstempel umgehen (Wichtig für APK!)
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.location.href = `${cleanUrl}?update=${Date.now()}`;
+
+    } catch (err) {
+        console.error('Fehler beim Leeren des Caches:', err);
+        window.location.reload();
+    }
+}
+
+// 4. Banner anzeigen
 function showUpdateBanner(newVersion) {
   if (document.getElementById('update-banner')) return;
 
@@ -1322,35 +1353,28 @@ function showUpdateBanner(newVersion) {
 
   document.body.appendChild(banner);
 
-document.getElementById('update-btn').addEventListener('click', async () => {
-    // 1. Neue Version speichern
-    localStorage.setItem('app_version', newVersion);
-
-    // 2. Allen Browser-Cache (Caches API) komplett löschen
-    if ('caches' in window) {
-      const cacheNames = await caches.keys();
-      await Promise.all(
-        cacheNames.map((cacheName) => caches.delete(cacheName))
-      );
-    }
-
-    // 3. Optional: Auch den Service Worker direkt abmelden, damit er sich frisch holt
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (let registration of registrations) {
-        await registration.unregister();
-      }
-    }
-
-    // 4. Seite hart neu laden (erzwingt frischen Server-Abruf)
-    window.location.reload(true);
-  });
+  // Banner-Button ruft jetzt ebenfalls die sichere Update-Funktion auf
+  document.getElementById('update-btn').onclick = () => {
+    triggerAppUpdate(newVersion);
+  };
 }
 
-// Prüfen beim Start der App
+// 5. Manueller Button in den Einstellungen (mit Bestätigung)
+let settingsUpdateBtn = document.getElementById('settingsUpdateBtn');
+if (settingsUpdateBtn) {
+    settingsUpdateBtn.onclick = () => {
+        if (confirm('Manuell nach Update suchen? (Cache leeren)\nDeine gespeicherten Arbeitszeiten bleiben erhalten.')) {
+            triggerAppUpdate();
+        }
+    };
+}
+
+// --- Start-Routinen ---
+
+// Beim Start der App prüfen
 checkForUpdates();
 
-// Optional: Auch prüfen, wenn der Nutzer die App auf dem Handy wieder öffnet (Tab-Wechsel)
+// Prüfen, wenn der Nutzer die App auf dem Handy wieder in den Vordergrund holt
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     checkForUpdates();
