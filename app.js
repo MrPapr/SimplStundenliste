@@ -301,7 +301,7 @@ function hours(a, b){
 }
 
 function ht(n){
-    let prefix = n > 0 ? '+' : '';
+    let prefix = n > 0 ? '' : '';
     return prefix + n.toLocaleString('de-AT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' h';
 }
 
@@ -736,26 +736,26 @@ let totalIstHours = 0;
                     zaHoursDisplay = ht(zaBase);
                 }
                 let timeStr = (item.start && item.end) ? `${item.start} - ${item.end}   ` : '';
-                lines.push(`${dateStr}   ${timeStr}Zeitausgleich   ${zaHoursDisplay}${noteCol}`);
+                lines.push(`${dateStr}   ${timeStr}Zeitausgleich  =  ${zaHoursDisplay}${noteCol}`);
             } else if (item.start && item.end) {
                 let base = hours(item.start, item.end);
                 totalIstHours += base;
-                let displayHours = isDoublePayDay(ds) ? `${ht(base)} (2x)` : ht(base);
+                let displayHours = isDoublePayDay(ds) ? `${ht(base)} ` : ht(base);
                 let endDisplay = item.end;
                 if (item.start && item.end && item.end < item.start) {
                     endDisplay += ' (+1)';
                 }
-                lines.push(`${dateStr}   ${item.start} - ${endDisplay}   ${displayHours}${noteCol}`);
+                lines.push(`${dateStr}   ${item.start} - ${endDisplay}  =  ${displayHours}${noteCol}`);
 
                 if(isSun || h){
                     let label = [];
                     if(isSun) label.push('Sonntag');
                     if(h) label.push(h);
 
-                    let weightedSpecial = isDoublePayDay(ds) ? base * 2 : base;
+                    let weightedSpecial = base;
                     totalSpecialHours += weightedSpecial;
                     let specialNote = item?.note ? ` | Notiz: ${item.note}` : '';
-                    specialLines.push(`${wd(ds)} ${pad(i)}.${pad(mo)}.${y}   ${item.start} - ${item.end} (${label.join(' / ')}): ${ht(weightedSpecial)}${specialNote}`);
+                    specialLines.push(`${wd(ds)} ${pad(i)}.${pad(mo)}.${y}   ${item.start} - ${item.end} = ${ht(weightedSpecial)}${specialNote}`);
                 }
             }
         });
