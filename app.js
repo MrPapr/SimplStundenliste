@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.2</div>
+                <div class="status">● Offline-App · V1.2.1</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -1311,6 +1311,14 @@ function forceManualUpdate() {
         // Falls kein spezielles Element da ist, reicht auch ein kurzes Feedback
         console.log('Update wird ausgeführt...');
     }
+    // Dem neuen Service Worker Bescheid geben, sofort zu übernehmen
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then(registration => {
+            if (registration.waiting) {
+              registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        }
 
     // 2. Kurzer Timeout (z. B. 400 Millisekunden), damit der Nutzer die Meldung kurz sehen kann
     setTimeout(() => {
@@ -1321,3 +1329,38 @@ function forceManualUpdate() {
         }, 400);
 }
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('Service Worker registriert mit Scope:', registration.scope);
+
+        // Optional: Auf Updates prüfen
+        registration.onupdatefound = () => {
+          const installingWorker = registration.installing;
+          installingWorker.onstatechange = () => {
+            if (installingWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                // Neuer Content ist verfügbar, Nutzer benachrichtigen!
+                showUpdateNotification();
+              }
+            }
+          };
+        };
+      })
+      .catch(error => {
+        console.error('Service Worker Registrierung fehlgeschlagen:', error);
+      });
+  });
+}
+
+function showUpdateNotification() {
+  const updateBanner = document.getElementById('update-banner'); // Deine Banner-ID im HTML
+  if (updateBanner) {
+    updateBanner.style.display = 'block'; // Banner anzeigen
+  } else {
+    // Falls kein Banner da ist, kannst du z.B. deine forceManualUpdate direkt aufrufen
+    // oder eine andere UI-Komponente triggern.
+    console.log('neues Update verfügbar.');
+  }
+}

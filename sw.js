@@ -1,37 +1,28 @@
-const CACHE_NAME = 'simplicissimus-v1.1.3'; // Bei Updates erhöhen
-const PRECACHE_ASSETS = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './version.json',
-  './simp-logo.png'
+const CACHE_NAME = 'meine-webapp-v1'; // Wichtig: Bei GitHub-Updates hier z.B. v2 draus machen!
+
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/style.css',
+  '/script.js'
 ];
 
-
-// 1. Installieren und sicher cachen (einzeln, damit ein Fehler nicht alles blockiert)
-self.addEventListener('install', (event) => {
+// Dateien beim Installieren cachen
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      for (const asset of PRECACHE_ASSETS) {
-        try {
-          await cache.add(asset);
-        } catch (err) {
-          console.warn('Konnte Asset nicht vorab cachen:', asset, err);
-        }
-      }
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
-  self.skipWaiting();
 });
 
-// 2. Alte Caches aufräumen
-self.addEventListener('activate', (event) => {
+// Alten Cache bei Versionswechsel aufräumen
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then((keys) => {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
         })
       );
     })
@@ -39,50 +30,16 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// 3. Blitzschneller Fetch-Handler mit echtem Offline-Fallback
-self.addEventListener('fetch', (event) => {
-  if (!event.request.url.startsWith('http')) return;
-
-  // A) version.json IMMER frisch vom Netz (mit Offline-Fallback)
-  if (event.request.url.includes('version.json')) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
-    return;
-  }
-
-  // B) Für die Hauptseite (Navigation / Start) -> Netz zuerst, Fallback auf Cache/index.html
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-          });
-        })
-        .catch(() => {
-          return caches.match(event.request).then((res) => {
-            return res || caches.match('./index.html') || caches.match('./');
-          });
-        })
-    );
-    return;
-  }
-
-  // C) Für alle anderen Assets (JS, CSS, Bilder): Stale-While-Revalidate (Blitzschnell + Offline-fähig)
+// App offline aus dem Cache laden
+self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(event.request).then((cachedResponse) => {
-        const fetchPromise = fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        }).catch(() => {});
-
-        return cachedResponse || fetchPromise;
-      });
-    })
+    caches.match(event.request).then(response => response || fetch(event.request))
   );
+});
+
+// Auf das Signal von forceManualUpdate hören und sofort aktivieren
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
