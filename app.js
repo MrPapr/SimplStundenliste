@@ -702,10 +702,11 @@ function pdfBlob(){
         lines = [],
         specialLines = [];
 
-let totalIstHours = 0;
+    let totalIstHours = 0;
     let totalSpecialHours = 0;
     let totalZaHours = 0; // Neu: Zähler für Zeitausgleichsstunden
     let hmap = holidays(y);
+    let weekHasEntries = false; // Merkt sich, ob in der aktuellen Woche Einträge vorhanden waren
 
     // Chronologische Schleife vom 1. bis zum letzten Tag des Monats
     for(let i = 1; i <= days; i++){
@@ -715,6 +716,11 @@ let totalIstHours = 0;
             h = hmap[ds];
 
         let list = getDayEntries(ds); // Alle Einträge dieses Tages holen
+
+        // Wenn an diesem Tag Einträge existieren, markieren wir die Woche als aktiv
+        if (list.length > 0) {
+            weekHasEntries = true;
+        }
 
         list.forEach((item) => {
             let noteCol = item?.note ? ` | Notiz: ${item.note}` : '';
@@ -759,6 +765,15 @@ let totalIstHours = 0;
                 }
             }
         });
+
+        // Wenn Sonntag ist, ist die Woche vorbei.
+        // Gab es in dieser Woche Einträge, fügen wir eine Leerzeile ein.
+        if (isSun) {
+            if (weekHasEntries) {
+                lines.push('');
+            }
+            weekHasEntries = false; // Zurücksetzen für die nächste Woche
+        }
     }
 
     if(lines.length === 0){
@@ -770,7 +785,13 @@ let totalIstHours = 0;
         let a = lines.slice(p * per, (p + 1) * per),
             s = `BT /F1 15 Tf 45 800 Td (${esc('Arbeitszeiten Simplicissimus')}) Tj /F1 11 Tf 0 -24 Td (${esc('Mitarbeiter: ' + S.name)}) Tj 0 -18 Td (${esc('Monat: ' + m)}) Tj`;
 
-        a.forEach(l => s += ` 0 -19 Td (${esc(l)}) Tj`);
+        a.forEach(l => {
+            if (l === '') {
+                s += ` 0 -19 Td () Tj`; // Leerzeile im PDF-Stream ausgeben
+            } else {
+                s += ` 0 -19 Td (${esc(l)}) Tj`;
+            }
+        });
 
         if(p === Math.ceil(lines.length / per) - 1){
             s += ` 0 -25 Td (${esc('Gesamt Ist-Stunden: ' + ht(totalIstHours))}) Tj`;
