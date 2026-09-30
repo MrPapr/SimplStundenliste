@@ -778,8 +778,10 @@ function pdfBlob(){
     }
 
     let streams = [], per = 28, rowHeight = 15;
+    let rightEdgeCol3 = 355; // Rechte Kante für Stunden-Spalte
+    let charWidth = 5.5;     // Geschätzte Zeichenbreite bei Helvetica 10pt
 
-    // Normale Zeilen ganz regulär in Chunks aufteilen (volle Ausnutzung von per = 28)
+    // Normale Zeilen ganz regulär in Chunks aufteilen
     let pageChunks = [];
     for(let i = 0; i < lines.length; i += per) {
         pageChunks.push(lines.slice(i, i + per));
@@ -791,10 +793,11 @@ function pdfBlob(){
         let startY = 720;
 
         // --- TABELLENKOPF ---
+        let col3HeaderX = rightEdgeCol3 - ('Stunden'.length * charWidth);
         s += ` /F1 10 Tf 1 0 0 1 45 ${startY} Tm (${esc('Tag')}) Tj`;
-        s += ` 1 0 0 1 115 ${startY} Tm (${esc('Datum')}) Tj`;
-        s += ` 1 0 0 1 200 ${startY} Tm (${esc('Zeit')}) Tj`;
-        s += ` 1 0 0 1 290 ${startY} Tm (${esc('Stunden')}) Tj`;
+        s += ` 1 0 0 1 125 ${startY} Tm (${esc('Datum')}) Tj`;
+        s += ` 1 0 0 1 220 ${startY} Tm (${esc('Zeit')}) Tj`;
+        s += ` 1 0 0 1 ${col3HeaderX} ${startY} Tm (${esc('Stunden')}) Tj`;
         s += ` 1 0 0 1 370 ${startY} Tm (${esc('Notiz')}) Tj`;
         s += ` 0.5 w 45 ${startY - 4} m 545 ${startY - 4} l S`;
 
@@ -805,9 +808,12 @@ function pdfBlob(){
             if (row === null) return;
 
             s += ` /F1 10 Tf 1 0 0 1 45 ${yPos} Tm (${esc(row.wd)}) Tj`;
-            s += ` 1 0 0 1 115 ${yPos} Tm (${esc(row.date)}) Tj`;
-            if (row.col2) s += ` 1 0 0 1 200 ${yPos} Tm (${esc(row.col2)}) Tj`;
-            if (row.col3) s += ` 1 0 0 1 290 ${yPos} Tm (${esc(row.col3)}) Tj`;
+            s += ` 1 0 0 1 125 ${yPos} Tm (${esc(row.date)}) Tj`;
+            if (row.col2) s += ` 1 0 0 1 220 ${yPos} Tm (${esc(row.col2)}) Tj`;
+            if (row.col3) {
+                let xPos3 = rightEdgeCol3 - (row.col3.length * charWidth);
+                s += ` 1 0 0 1 ${xPos3} ${yPos} Tm (${esc(row.col3)}) Tj`;
+            }
             if (row.note) s += ` 1 0 0 1 370 ${yPos} Tm (${esc(row.note)}) Tj`;
         });
 
@@ -826,15 +832,16 @@ function pdfBlob(){
         streams.push(s);
     });
 
-    // --- SONN- UND FEIERTAGSSEITE (Immer auf einer separaten Seite, falls vorhanden) ---
+    // --- SONN- UND FEIERTAGSSEITE ---
     if (specialLines.length > 0) {
         let sp = `BT /F1 15 Tf 45 800 Td (${esc('Sonn- und Feiertagsdienste')}) Tj /F1 11 Tf 0 -22 Td (${esc('Mitarbeiter: ' + S.name)}) Tj 0 -16 Td (${esc('Monat: ' + monthYearStr)}) Tj`;
 
         let startY = 720;
+        let col3HeaderX = rightEdgeCol3 - ('Stunden'.length * charWidth);
         sp += ` /F1 10 Tf 1 0 0 1 45 ${startY} Tm (${esc('Tag')}) Tj`;
-        sp += ` 1 0 0 1 115 ${startY} Tm (${esc('Datum')}) Tj`;
-        sp += ` 1 0 0 1 200 ${startY} Tm (${esc('Zeit')}) Tj`;
-        sp += ` 1 0 0 1 290 ${startY} Tm (${esc('Stunden')}) Tj`;
+        sp += ` 1 0 0 1 125 ${startY} Tm (${esc('Datum')}) Tj`;
+        sp += ` 1 0 0 1 220 ${startY} Tm (${esc('Zeit')}) Tj`;
+        sp += ` 1 0 0 1 ${col3HeaderX} ${startY} Tm (${esc('Stunden')}) Tj`;
         sp += ` 1 0 0 1 370 ${startY} Tm (${esc('Feiertag / Notiz')}) Tj`;
         sp += ` 0.5 w 45 ${startY - 4} m 545 ${startY - 4} l S`;
 
@@ -842,9 +849,12 @@ function pdfBlob(){
         specialLines.forEach((row, index) => {
             let yPos = rowStartY - (index * rowHeight);
             sp += ` /F1 10 Tf 1 0 0 1 45 ${yPos} Tm (${esc(row.wd)}) Tj`;
-            sp += ` 1 0 0 1 115 ${yPos} Tm (${esc(row.date)}) Tj`;
-            if (row.col2) sp += ` 1 0 0 1 200 ${yPos} Tm (${esc(row.col2)}) Tj`;
-            if (row.col3) sp += ` 1 0 0 1 290 ${yPos} Tm (${esc(row.col3)}) Tj`;
+            sp += ` 1 0 0 1 125 ${yPos} Tm (${esc(row.date)}) Tj`;
+            if (row.col2) sp += ` 1 0 0 1 220 ${yPos} Tm (${esc(row.col2)}) Tj`;
+            if (row.col3) {
+                let xPos3 = rightEdgeCol3 - (row.col3.length * charWidth);
+                sp += ` 1 0 0 1 ${xPos3} ${yPos} Tm (${esc(row.col3)}) Tj`;
+            }
             if (row.note) sp += ` 1 0 0 1 370 ${yPos} Tm (${esc(row.note)}) Tj`;
         });
         let summaryY = rowStartY - (specialLines.length * rowHeight) - 12;
