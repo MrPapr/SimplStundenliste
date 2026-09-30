@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.2.2</div>
+                <div class="status">● Offline-App · V1.2</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -696,131 +696,178 @@ function esc(s){
 }
 
 function pdfBlob(){
-    let m = $('#monthPick').value,
-        [y, mo] = m.split('-').map(Number),
+    let mVal = $('#monthPick').value,
+        [y, mo] = mVal.split('-').map(Number),
         days = new Date(y, mo, 0).getDate(),
         lines = [],
         specialLines = [];
 
+    // Deutsches Monat-Array für die schöne Anzeige
+    const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    // Deutsches Wochentag-Array für die vollständige Ausschreibung
+    const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+    let monthYearStr = `${monthNames[mo - 1] || mo} ${y}`;
+
     let totalIstHours = 0;
     let totalSpecialHours = 0;
-    let totalZaHours = 0; // Neu: Zähler für Zeitausgleichsstunden
+    let totalZaHours = 0;
     let hmap = holidays(y);
-    let weekHasEntries = false; // Merkt sich, ob in der aktuellen Woche Einträge vorhanden waren
+    let weekHasEntries = false;
 
-    // Chronologische Schleife vom 1. bis zum letzten Tag des Monats
     for(let i = 1; i <= days; i++){
         let ds = `${y}-${pad(mo)}-${pad(i)}`,
             d = parse(ds),
             isSun = d.getDay() === 0,
             h = hmap[ds];
 
-        let list = getDayEntries(ds); // Alle Einträge dieses Tages holen
+        let list = getDayEntries(ds);
 
-        // Wenn an diesem Tag Einträge existieren, markieren wir die Woche als aktiv
         if (list.length > 0) {
             weekHasEntries = true;
         }
 
         list.forEach((item) => {
-            let noteCol = item?.note ? ` | Notiz: ${item.note}` : '';
-            let dateStr = `${wd(ds)}  ${pad(i)}.${pad(mo)}.${y}`;
+            let noteStr = item?.note ? item.note : '';
+            let wdStr = dayNames[d.getDay()];
+            let dateStr = `${pad(i)}.${pad(mo)}.${y}`;
 
             if (item.type === 'vacation') {
                 let weighted = getWeightedHours(ds, [item]);
-                lines.push(`${dateStr}   Urlaub   ${ht(weighted)}${noteCol}`);
                 totalIstHours += weighted;
+                lines.push({ wd: wdStr, date: dateStr, col2: 'Urlaub', col3: ht(weighted), note: noteStr });
             } else if (item.type === 'sick') {
                 let weighted = getWeightedHours(ds, [item]);
-                lines.push(`${dateStr}   Krank    ${ht(weighted)}${noteCol}`);
                 totalIstHours += weighted;
+                lines.push({ wd: wdStr, date: dateStr, col2: 'Krank', col3: ht(weighted), note: noteStr });
             } else if (item.type === 'za') {
-                let zaHoursDisplay = '0.00 h';
+                let zaBase = 0;
+                let timeStr = '';
                 if (item.start && item.end) {
-                    let zaBase = hours(item.start, item.end);
+                    zaBase = hours(item.start, item.end);
                     totalZaHours += zaBase;
-                    zaHoursDisplay = ht(zaBase);
+                    timeStr = `${item.start} - ${item.end}`;
+                } else if (item.start) {
+                    timeStr = item.start;
                 }
-                let timeStr = (item.start && item.end) ? `${item.start} - ${item.end}   ` : '';
-                lines.push(`${dateStr}   ${timeStr}Zeitausgleich  =  ${zaHoursDisplay}${noteCol}`);
+                lines.push({ wd: wdStr, date: dateStr, col2: timeStr, col3: ht(zaBase), note: noteStr });
             } else if (item.start && item.end) {
                 let base = hours(item.start, item.end);
                 totalIstHours += base;
-                let displayHours = isDoublePayDay(ds) ? `${ht(base)} ` : ht(base);
-                let endDisplay = item.end;
-                if (item.start && item.end && item.end < item.start) {
-                    endDisplay += ' (+1)';
-                }
-                lines.push(`${dateStr}   ${item.start} - ${endDisplay}  =  ${displayHours}${noteCol}`);
+                let endDisplay = item.end + (item.end < item.start ? ' (+1)' : '');
+                let timeStr = `${item.start} - ${endDisplay}`;
+                lines.push({ wd: wdStr, date: dateStr, col2: timeStr, col3: ht(base), note: noteStr });
 
                 if(isSun || h){
-                    let label = [];
-                    if(isSun) label.push('Sonntag');
-                    if(h) label.push(h);
-
-                    let weightedSpecial = base;
-                    totalSpecialHours += weightedSpecial;
-                    let specialNote = item?.note ? ` | Notiz: ${item.note}` : '';
-                    specialLines.push(`${wd(ds)} ${pad(i)}.${pad(mo)}.${y}   ${item.start} - ${item.end} = ${ht(weightedSpecial)}${specialNote}`);
+                    let label = isSun && h ? `Sonntag / ${h}` : (isSun ? 'Sonntag' : h);
+                    totalSpecialHours += base;
+                    specialLines.push({ wd: wdStr, date: dateStr, col2: timeStr, col3: ht(base), note: noteStr ? `${noteStr} (${label})` : label });
                 }
             }
         });
 
-        // Wenn Sonntag ist, ist die Woche vorbei.
-        // Gab es in dieser Woche Einträge, fügen wir eine Leerzeile ein.
         if (isSun) {
             if (weekHasEntries) {
-                lines.push('');
+                lines.push(null);
             }
-            weekHasEntries = false; // Zurücksetzen für die nächste Woche
+            weekHasEntries = false;
         }
     }
 
     if(lines.length === 0){
-        lines.push('Keine Arbeitsstunden in diesem Monat eingetragen.');
+        lines.push({ wd: '', date: 'Keine Arbeitsstunden in diesem Monat eingetragen.', col2: '', col3: '', note: '' });
     }
 
-    let streams = [], per = 30;
-    for(let p = 0; p < Math.ceil(lines.length / per); p++){
-        let a = lines.slice(p * per, (p + 1) * per),
-            s = `BT /F1 15 Tf 45 800 Td (${esc('Arbeitszeiten Simplicissimus')}) Tj /F1 11 Tf 0 -24 Td (${esc('Mitarbeiter: ' + S.name)}) Tj 0 -18 Td (${esc('Monat: ' + m)}) Tj`;
+    let streams = [], per = 28, rowHeight = 15;
 
-        a.forEach(l => {
-            if (l === '') {
-                s += ` 0 -19 Td () Tj`; // Leerzeile im PDF-Stream ausgeben
-            } else {
-                s += ` 0 -19 Td (${esc(l)}) Tj`;
-            }
+    // Normale Zeilen ganz regulär in Chunks aufteilen (volle Ausnutzung von per = 28)
+    let pageChunks = [];
+    for(let i = 0; i < lines.length; i += per) {
+        pageChunks.push(lines.slice(i, i + per));
+    }
+
+    pageChunks.forEach((chunk, p) => {
+        let s = `BT /F1 15 Tf 45 800 Td (${esc('Arbeitszeiten Simplicissimus')}) Tj /F1 11 Tf 0 -22 Td (${esc('Mitarbeiter: ' + S.name)}) Tj 0 -16 Td (${esc('Monat: ' + monthYearStr)}) Tj`;
+
+        let startY = 720;
+
+        // --- TABELLENKOPF ---
+        s += ` /F1 10 Tf 1 0 0 1 45 ${startY} Tm (${esc('Tag')}) Tj`;
+        s += ` 1 0 0 1 115 ${startY} Tm (${esc('Datum')}) Tj`;
+        s += ` 1 0 0 1 200 ${startY} Tm (${esc('Zeit')}) Tj`;
+        s += ` 1 0 0 1 290 ${startY} Tm (${esc('Stunden')}) Tj`;
+        s += ` 1 0 0 1 370 ${startY} Tm (${esc('Notiz')}) Tj`;
+        s += ` 0.5 w 45 ${startY - 4} m 545 ${startY - 4} l S`;
+
+        // --- TABELLENZEILEN ---
+        let rowStartY = startY - 18;
+        chunk.forEach((row, index) => {
+            let yPos = rowStartY - (index * rowHeight);
+            if (row === null) return;
+
+            s += ` /F1 10 Tf 1 0 0 1 45 ${yPos} Tm (${esc(row.wd)}) Tj`;
+            s += ` 1 0 0 1 115 ${yPos} Tm (${esc(row.date)}) Tj`;
+            if (row.col2) s += ` 1 0 0 1 200 ${yPos} Tm (${esc(row.col2)}) Tj`;
+            if (row.col3) s += ` 1 0 0 1 290 ${yPos} Tm (${esc(row.col3)}) Tj`;
+            if (row.note) s += ` 1 0 0 1 370 ${yPos} Tm (${esc(row.note)}) Tj`;
         });
 
-        if(p === Math.ceil(lines.length / per) - 1){
-            s += ` 0 -25 Td (${esc('Gesamt Ist-Stunden: ' + ht(totalIstHours))}) Tj`;
-            // Neu: Zeitausgleich-Summe am Ende des PDFs ausgeben, falls Stunden vorhanden
+        // --- SUMMEN AUF DER LETZTEN HAUPTSEITE ---
+        let isLastMainPage = (p === pageChunks.length - 1);
+        if (isLastMainPage) {
+            let summaryY = rowStartY - (chunk.length * rowHeight) - 12;
+            s += ` /F1 11 Tf 1 0 0 1 45 ${summaryY} Tm (${esc('Gesamt Ist-Stunden: ' + ht(totalIstHours))}) Tj`;
             if (totalZaHours > 0) {
-                s += ` 0 -18 Td (${esc('Gesamt Zeitausgleich-Stunden: ' + ht(totalZaHours))}) Tj`;
+                summaryY -= 15;
+                s += ` 1 0 0 1 45 ${summaryY} Tm (${esc('Gesamt Zeitausgleich-Stunden: ' + ht(totalZaHours))}) Tj`;
             }
         }
+
         s += ' ET';
         streams.push(s);
+    });
+
+    // --- SONN- UND FEIERTAGSSEITE (Immer auf einer separaten Seite, falls vorhanden) ---
+    if (specialLines.length > 0) {
+        let sp = `BT /F1 15 Tf 45 800 Td (${esc('Sonn- und Feiertagsdienste')}) Tj /F1 11 Tf 0 -22 Td (${esc('Mitarbeiter: ' + S.name)}) Tj 0 -16 Td (${esc('Monat: ' + monthYearStr)}) Tj`;
+
+        let startY = 720;
+        sp += ` /F1 10 Tf 1 0 0 1 45 ${startY} Tm (${esc('Tag')}) Tj`;
+        sp += ` 1 0 0 1 115 ${startY} Tm (${esc('Datum')}) Tj`;
+        sp += ` 1 0 0 1 200 ${startY} Tm (${esc('Zeit')}) Tj`;
+        sp += ` 1 0 0 1 290 ${startY} Tm (${esc('Stunden')}) Tj`;
+        sp += ` 1 0 0 1 370 ${startY} Tm (${esc('Feiertag / Notiz')}) Tj`;
+        sp += ` 0.5 w 45 ${startY - 4} m 545 ${startY - 4} l S`;
+
+        let rowStartY = startY - 18;
+        specialLines.forEach((row, index) => {
+            let yPos = rowStartY - (index * rowHeight);
+            sp += ` /F1 10 Tf 1 0 0 1 45 ${yPos} Tm (${esc(row.wd)}) Tj`;
+            sp += ` 1 0 0 1 115 ${yPos} Tm (${esc(row.date)}) Tj`;
+            if (row.col2) sp += ` 1 0 0 1 200 ${yPos} Tm (${esc(row.col2)}) Tj`;
+            if (row.col3) sp += ` 1 0 0 1 290 ${yPos} Tm (${esc(row.col3)}) Tj`;
+            if (row.note) sp += ` 1 0 0 1 370 ${yPos} Tm (${esc(row.note)}) Tj`;
+        });
+        let summaryY = rowStartY - (specialLines.length * rowHeight) - 12;
+        sp += ` /F1 11 Tf 1 0 0 1 45 ${summaryY} Tm (${esc('Gesamt Sonn-/Feiertagsstunden: ' + ht(totalSpecialHours))}) Tj`;
+        sp += ' ET';
+        streams.push(sp);
     }
 
-    let sp = `BT /F1 15 Tf 45 800 Td (${esc('Sonn- und Feiertagsdienste')}) Tj /F1 11 Tf 0 -24 Td (${esc('Mitarbeiter: ' + S.name)}) Tj 0 -18 Td (${esc('Monat: ' + m)}) Tj 0 -24 Td (${esc('Geleistete Dienste an Sonn- und Feiertagen:')}) Tj`;
+    // --- SEITENZAHLEN DYNAMISCH HINZUFÜGEN ---
+    let totalPages = streams.length;
+    streams = streams.map((st, idx) => {
+        return st + ` BT /F1 9 Tf 510 30 Td (${esc((idx + 1) + ' / ' + totalPages)}) Tj ET`;
+    });
 
-    if(specialLines.length){
-        specialLines.forEach(l => sp += ` 0 -20 Td (${esc(l)}) Tj`);
-        sp += ` 0 -25 Td (${esc('Gesamt Sonn-/Feiertagsstunden: ' + ht(totalSpecialHours))}) Tj`;
-    } else {
-        sp += ` 0 -20 Td (${esc('Keine Dienste an Sonn- oder Feiertagen in diesem Monat.')}) Tj`;
-    }
-    sp += ' ET';
-    streams.push(sp);
-
-    let objs = ['<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'],
+    let objs = [
+            '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'
+        ],
         pages = [],
         contents = [];
 
-    streams.forEach(s => {
-        contents.push(objs.push(`<< /Length ${s.length} >>\nstream\n${s}\nendstream`));
+    streams.forEach(st => {
+        let streamBytes = new TextEncoder().encode(st);
+        contents.push(objs.push(`<< /Length ${streamBytes.length} >>\nstream\n${st}\nendstream`));
         pages.push(objs.push('PENDING'));
     });
 
