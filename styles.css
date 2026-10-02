@@ -247,7 +247,7 @@ body.is-android-app {
 
 /* Tabellen kompakter machen, um Scrollen zu verhindern */
 table {
-    font-size: 0.9 rem; /* Etwas kleinere Schrift */
+    font-size: 0.85 rem; /* Etwas kleinere Schrift */
 }
 
 table th,
