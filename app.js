@@ -25,14 +25,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.2</div>
+                <div class="status">● Offline-App · V1.3</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
                     <button data-v="week">Woche</button>
                     <button data-v="month">Monat</button>
-                    <button data-v="schedule">🎭 Spielplan</button>
-                    <button data-v="settings">Einstellungen</button>
+                    <button data-v="schedule">Spielplan</button>
+                    <button data-v="settings">Einst.</button>
                 </nav>
 
                 <main>
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <button type="button" class="type-btn active" data-type="work" onclick="setType('work')">Arbeit</button>
                                 <button type="button" class="type-btn" data-type="vacation" onclick="setType('vacation')">Urlaub</button>
                                 <button type="button" class="type-btn" data-type="sick" onclick="setType('sick')">Krank</button>
-                                <button type="button" class="type-btn" data-type="za" onclick="setType('za')">ZA</button>
+                               <!-- <button type="button" class="type-btn" data-type="za" onclick="setType('za')">ZA</button> -->
                             </div>
 
                             <div id="timeInputFields">
@@ -103,64 +103,76 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                     </section>
 
-                    <section id="week" class="view" hidden>
-                        <div class="card">
-                            <label for="weekDate">Woche mit Datum</label>
-                            <input id="weekDate" type="date">
-                            <h2 id="weekTotal"></h2>
-                            <div class="table">
-                                <table>
-                                    <thead>
-                                    <tr>
-                                        <th>Tag</th>
-                                        <th>Start</th>
-                                        <th>Ende</th>
-                                        <th>Std.</th>
-                                        <th>Edit</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody id="weekRows"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </section>
+<section id="week" class="view" hidden>
+    <div class="card">
+        <div class="between" style="align-items: flex-end; margin-bottom: 10px;">
+            <div>
+                <label for="weekDate">Woche mit Datum</label>
+                <input id="weekDate" type="date">
+            </div>
+        </div>
 
-                    <section id="month" class="view" hidden>
-                        <div class="card">
-                            <div class="between">
-                                <div>
-                                    <label for="monthPick">Monat</label>
-                                    <input id="monthPick" type="month">
-                                </div>
-                                <div class="actions">
-                                    <button id="pdf" class="primary">PDF erstellen</button>
-                                    <button id="share">PDF teilen</button>
-                                </div>
-                            </div>
+        <h2 id="weekTotal"></h2>
+        <div class="table">
+            <table>
+                <thead>
+                <tr>
+                    <th>Tag</th>
+                    <th>Start</th>
+                    <th>Ende</th>
+                    <th>Std.</th>
+                    <th>Edit</th>
+                </tr>
+                </thead>
+                <tbody id="weekRows"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+<section id="month" class="view" hidden>
+    <div class="card">
+        <!-- Oben: Monats-Picker und Checkbox -->
+        <div class="between" style="align-items: flex-end; margin-bottom: 12px;">
+            <div>
+                <label for="monthPick">Monat</label>
+                <input id="monthPick" type="month">
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; padding-bottom: 4px;">
+                <input type="checkbox" id="showAllMonth" checked onchange="renderMonth()">
+                <label for="showAllMonth" style="font-weight: normal; margin-bottom: 0; cursor: pointer;">Alle Tage anzeigen</label>
+            </div>
+        </div>
 
-                            <div style="margin-top: 15px;">
-                                <label for="monthWeeklyHours">Wochenstunden für diesen Monat</label>
-                                <input id="monthWeeklyHours" type="number" step="0.5" min="0" value="20">
-                            </div>
+        <!-- Darunter: Wochenstunden und PDF-Buttons nebeneinander -->
+        <div class="between" style="align-items: flex-end; gap: 10px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label for="monthWeeklyHours">Wochenstunden für diesen Monat</label>
+                <input id="monthWeeklyHours" type="number" step="0.5" min="0" value="20">
+            </div>
+            <div class="actions" style="display: flex; gap: 8px;">
+                <button id="pdf" class="primary">PDF erstellen</button>
+                <button id="share">PDF teilen</button>
+            </div>
+        </div>
 
-                            <h2 id="monthTotal"></h2>
+        <h2 id="monthTotal"></h2>
 
-                            <div class="table">
-                                <table>
-                                    <thead>
-                                    <tr>
-                                        <th>Tag</th>
-                                        <th>Start</th>
-                                        <th>Ende</th>
-                                        <th>Std.</th>
-                                        <th>Edit</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody id="monthRows"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </section>
+        <div class="table">
+            <table>
+                <thead>
+                <tr>
+                    <th>Tag</th>
+                    <th>Start</th>
+                    <th>Ende</th>
+                    <th>Std.</th>
+                    <th>Edit</th>
+                </tr>
+                </thead>
+                <tbody id="monthRows"></tbody>
+            </table>
+        </div>
+    </div>
+</section>
 
                     <section id="schedule" class="view" hidden>
                         <div class="card">
@@ -201,12 +213,20 @@ document.addEventListener("DOMContentLoaded", () => {
                             <label for="name">Name für PDF</label>
                             <input id="name">
 
-                            <label for="defaultWeeklyHours">Standard-Wochenstunden</label>
+                            <label for="defaultWeeklyHours">Standard-Wochenstd.</label>
                             <input id="defaultWeeklyHours" type="number" step="0.5" min="0" value="20">
 
-                            <label for="initialBalance">Start-Saldo / Korrektur (in Stunden)</label>
-                            <input id="initialBalance" type="number" step="0.25" placeholder="z. B. 12.5 oder -5">
-                            <p class="hint">Hier kannst du Plus- oder Minusstunden aus der Zeit vor der App eintragen.</p>
+                            <!-- Linksbuendige Checkbox für PDF-Einstellung -->
+                                    <div style="margin: 15px 0; width: 100%; text-align: left;">
+                                        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                            <input type="checkbox" id="pdfShowAllDays" onchange="toggleAndSaveSetting('pdfShowAllDays', this.checked)">
+                                            Auf PDF auch freie Tage anzeigen
+                                        </label>
+                                    </div>
+
+                            <label for="initialBalance" style="margin-top: 15px;">Start-Saldo / Korrektur (in Stunden)</label>
+                                <input id="initialBalance" type="number" step="0.25" placeholder="z. B. 12.5 oder -5">
+                                <p class="hint">Hier kannst du Plus- oder Minusstunden aus der Zeit vor der App eintragen.</p>
 
                             <h3 style="margin-top: 20px; font-size: 1rem;">Schicht-Schnellauswahl anpassen</h3>
                             <div id="quickShiftsSettings"></div>
@@ -227,7 +247,64 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `;
     }
+// --- AUTOMATISCHER FALLBACK FÜR DESKTOP (FIREFOX / SAFARI AUF MAC) ---
+    let monthInput = document.getElementById('monthPick');
+    if (monthInput) {
+        const isDesktopNonNative = !window.matchMedia('(pointer: coarse)').matches &&
+                                   (navigator.userAgent.includes('Firefox') || (navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')));
 
+        if (isDesktopNonNative) {
+            let parent = monthInput.parentNode;
+            let wrapper = document.createElement('div');
+            wrapper.style.cssText = "display: inline-flex; gap: 6px; align-items: center;";
+
+            let selectMonth = document.createElement('select');
+            selectMonth.id = 'selectMonth';
+            const months = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+            months.forEach((m, idx) => {
+                let opt = document.createElement('option');
+                opt.value = String(idx + 1).padStart(2, '0');
+                opt.textContent = m;
+                selectMonth.appendChild(opt);
+            });
+
+            let selectYear = document.createElement('select');
+            selectYear.id = 'selectYear';
+            let currentYear = new Date().getFullYear();
+            for (let y = currentYear - 3; y <= currentYear + 3; y++) {
+                let opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                selectYear.appendChild(opt);
+            }
+
+            let now = new Date();
+            selectYear.value = now.getFullYear();
+            selectMonth.value = String(now.getMonth() + 1).padStart(2, '0');
+
+            monthInput.style.display = 'none';
+            wrapper.appendChild(selectMonth);
+            wrapper.appendChild(selectYear);
+            parent.appendChild(wrapper);
+
+            Object.defineProperty(monthInput, 'value', {
+                get() {
+                    return `${selectYear.value}-${selectMonth.value}`;
+                },
+                set(val) {
+                    if (val && val.includes('-')) {
+                        let parts = val.split('-');
+                        selectYear.value = parts[0];
+                        selectMonth.value = parts[1];
+                    }
+                },
+                configurable: true
+            });
+
+            selectMonth.onchange = () => monthInput.dispatchEvent(new Event('change'));
+            selectYear.onchange = () => monthInput.dispatchEvent(new Event('change'));
+        }
+    }
     // App-Start initialisieren
     initApp();
 });
@@ -606,30 +683,49 @@ function editEntry(ds, index = 0){
     setTimeout(() => c.classList.remove('editing'), 1400);
 }
 
-// Korrigierte Wochenberechnung mit korrektem Wochenstart (Montag)
 function renderWeek(){
     let dateVal = $('#weekDate').value;
     if(!dateVal) return;
     let d = parse(dateVal);
     let day = d.getDay();
+
     // Korrektur für europäischen Wochenstart (Montag = 1, Sonntag = 7)
     let diffToMonday = d.getDate() - day + (day === 0 ? -6 : 1);
     let monday = new Date(d.setDate(diffToMonday));
 
     let rows = [], tot = 0;
+
+    // Alle 7 Tage (Montag bis Sonntag) durchgehen
     for(let i = 0; i < 7; i++){
         let x = new Date(monday);
         x.setDate(monday.getDate() + i);
         let ds = iso(x), e = S.entries[ds];
+
         if(hasHours(e)){
             tot += getWeightedHours(ds, e);
             rows.push(entryRow(ds, e, true));
+        } else {
+            rows.push(emptyDayRow(ds));
         }
     }
-    $('#weekRows').innerHTML = rows.join('') || '<tr><td colspan="5">Keine Arbeitsstunden in diesem Woche.</td></tr>';
+
+    $('#weekRows').innerHTML = rows.join('');
     $('#weekTotal').textContent = 'Angerechnete Stunden: ' + ht(tot);
 
     document.querySelectorAll('#weekRows [data-edit]').forEach(b => b.onclick = () => editEntry(b.dataset.edit));
+}
+
+// Hilfsfunktion für tage ohne Eintrag (ganz ohne Button)
+function emptyDayRow(ds) {
+    let d = parse(ds);
+    const dayNamesShort = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+    let wdStr = dayNamesShort[d.getDay()];
+    let dateFormatted = `${wdStr}., ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.`;
+
+    return `<tr>
+        <td>${dateFormatted}</td>
+        <td colspan="4" style="color: var(--text-muted, #888); font-style: italic;">Frei / Kein Eintrag</td>
+    </tr>`;
 }
 
 function renderMonth(){
@@ -640,15 +736,42 @@ function renderMonth(){
     let days = new Date(y, mo, 0).getDate();
     let rows = [];
 
+    // Prüfen, ob die Checkbox existiert und ob sie angehakt ist
+    let showAllCheckbox = $('#showAllMonth');
+    let showAll = showAllCheckbox ? showAllCheckbox.checked : true;
+
+    let weekHasRows = false; // Merkt sich, ob in der aktuellen Woche Zeilen da waren
+
     for(let i = 1; i <= days; i++){
         let ds = `${y}-${pad(mo)}-${pad(i)}`;
         let e = S.entries[ds];
+        let d = parse(ds);
+        let isSun = (d.getDay() === 0);
+
+        let added = false;
         if(hasHours(e)){
             rows.push(entryRow(ds, e, true));
+            added = true;
+        } else if (showAll) {
+            // Nur anzeigen, wenn die Checkbox "Alle Tage anzeigen" aktiv ist
+            rows.push(emptyDayRow(ds));
+            added = true;
+        }
+
+        if(added) {
+            weekHasRows = true;
+        }
+
+        // Nach jedem Sonntag: Nur wenn in dieser Woche auch Zeilen gerendert wurden, den Abstand einfügen
+        if(isSun){
+            if(weekHasRows){
+                rows.push(`<div style="height: 15px; margin: 0;"></div>`);
+            }
+            weekHasRows = false; // Für die nächste Woche zurücksetzen
         }
     }
 
-    $('#monthRows').innerHTML = rows.join('') || '<tr><td colspan="5">Keine Arbeitsstunden in diesem Monat.</td></tr>';
+    $('#monthRows').innerHTML = rows.join('');
     document.querySelectorAll('#monthRows [data-edit]').forEach(b => b.onclick = () => editEntry(b.dataset.edit));
 
     let currentWeekly = S.monthlyWeeklyHours[m] !== undefined ? S.monthlyWeeklyHours[m] : (S.defaultWeeklyHours || 20);
@@ -694,7 +817,6 @@ function renderMonth(){
 function esc(s){
     return String(s).replace(/[\\()]/g, '\\$&').replace(/[ä]/g, 'ae').replace(/[ö]/g, 'oe').replace(/[ü]/g, 'ue').replace(/[Ä]/g, 'Ae').replace(/[Ö]/g, 'Oe').replace(/[Ü]/g, 'Ue').replace(/ß/g, 'ss');
 }
-
 function pdfBlob(){
     let mVal = $('#monthPick').value,
         [y, mo] = mVal.split('-').map(Number),
@@ -721,49 +843,58 @@ function pdfBlob(){
             h = hmap[ds];
 
         let list = getDayEntries(ds);
+        let wdStr = dayNames[d.getDay()];
+        let dateStr = `${pad(i)}.${pad(mo)}.${y}`;
 
         if (list.length > 0) {
             weekHasEntries = true;
+            list.forEach((item) => {
+                let noteStr = item?.note ? item.note : '';
+
+                if (item.type === 'vacation') {
+                    let weighted = getWeightedHours(ds, [item]);
+                    totalIstHours += weighted;
+                    lines.push({ wd: wdStr, date: dateStr, col2: 'Urlaub', col3: ht(weighted), note: noteStr });
+                } else if (item.type === 'sick') {
+                    let weighted = getWeightedHours(ds, [item]);
+                    totalIstHours += weighted;
+                    lines.push({ wd: wdStr, date: dateStr, col2: 'Krank', col3: ht(weighted), note: noteStr });
+                } else if (item.type === 'za') {
+                    let zaBase = 0;
+                    let timeStr = '';
+                    if (item.start && item.end) {
+                        zaBase = hours(item.start, item.end);
+                        totalZaHours += zaBase;
+                        timeStr = `${item.start} - ${item.end}`;
+                    } else if (item.start) {
+                        timeStr = item.start;
+                    }
+                    lines.push({ wd: wdStr, date: dateStr, col2: timeStr, col3: ht(zaBase), note: noteStr });
+                } else if (item.start && item.end) {
+                    let base = hours(item.start, item.end);
+                    totalIstHours += base;
+                    let endDisplay = item.end + (item.end < item.start ? ' (+1)' : '');
+                    let timeStr = `${item.start} - ${endDisplay}`;
+                    lines.push({ wd: wdStr, date: dateStr, col2: timeStr, col3: ht(base), note: noteStr });
+
+                    if(isSun || h){
+                        let label = isSun && h ? `Sonntag / ${h}` : (isSun ? 'Sonntag' : h);
+                        totalSpecialHours += base;
+                        specialLines.push({ wd: wdStr, date: dateStr, col2: timeStr, col3: ht(base), note: noteStr ? `${noteStr} (${label})` : label });
+                    }
+                }
+            });
+        } else if (S.pdfShowAllDays) {
+            // Wenn keine Einträge da sind, aber die Einstellung "Alle Tage anzeigen" aktiv ist:
+            weekHasEntries = true;
+            lines.push({
+                wd: wdStr,
+                date: dateStr,
+                col2: '-',
+                col3: '',
+                note: h ? h : '' // Falls Feiertag, direkt als Notiz anzeigen
+            });
         }
-
-        list.forEach((item) => {
-            let noteStr = item?.note ? item.note : '';
-            let wdStr = dayNames[d.getDay()];
-            let dateStr = `${pad(i)}.${pad(mo)}.${y}`;
-
-            if (item.type === 'vacation') {
-                let weighted = getWeightedHours(ds, [item]);
-                totalIstHours += weighted;
-                lines.push({ wd: wdStr, date: dateStr, col2: 'Urlaub', col3: ht(weighted), note: noteStr });
-            } else if (item.type === 'sick') {
-                let weighted = getWeightedHours(ds, [item]);
-                totalIstHours += weighted;
-                lines.push({ wd: wdStr, date: dateStr, col2: 'Krank', col3: ht(weighted), note: noteStr });
-            } else if (item.type === 'za') {
-                let zaBase = 0;
-                let timeStr = '';
-                if (item.start && item.end) {
-                    zaBase = hours(item.start, item.end);
-                    totalZaHours += zaBase;
-                    timeStr = `${item.start} - ${item.end}`;
-                } else if (item.start) {
-                    timeStr = item.start;
-                }
-                lines.push({ wd: wdStr, date: dateStr, col2: timeStr, col3: ht(zaBase), note: noteStr });
-            } else if (item.start && item.end) {
-                let base = hours(item.start, item.end);
-                totalIstHours += base;
-                let endDisplay = item.end + (item.end < item.start ? ' (+1)' : '');
-                let timeStr = `${item.start} - ${endDisplay}`;
-                lines.push({ wd: wdStr, date: dateStr, col2: timeStr, col3: ht(base), note: noteStr });
-
-                if(isSun || h){
-                    let label = isSun && h ? `Sonntag / ${h}` : (isSun ? 'Sonntag' : h);
-                    totalSpecialHours += base;
-                    specialLines.push({ wd: wdStr, date: dateStr, col2: timeStr, col3: ht(base), note: noteStr ? `${noteStr} (${label})` : label });
-                }
-            }
-        });
 
         if (isSun) {
             if (weekHasEntries) {
@@ -777,7 +908,8 @@ function pdfBlob(){
         lines.push({ wd: '', date: 'Keine Arbeitsstunden in diesem Monat eingetragen.', col2: '', col3: '', note: '' });
     }
 
-    let streams = [], per = 28, rowHeight = 15;
+    // Zeilen pro Seite auf 40 erhöht (vorher 28)
+    let streams = [], per = 40, rowHeight = 15;
     let rightEdgeCol3 = 355; // Rechte Kante für Stunden-Spalte
     let charWidth = 5.5;     // Geschätzte Zeichenbreite bei Helvetica 10pt
 
@@ -899,6 +1031,45 @@ function pdfBlob(){
 
     return new Blob([pdf], { type: 'application/pdf' });
 }
+
+// Beispiel für deinen Event-Listener beim Knopfdruck:
+async function handleDownloadPDF() {
+    // 1. Dein bestehendes PDF als Blob generieren
+    const myBlob = pdfBlob();
+    const filename = 'Arbeitszeiten.pdf';
+
+    const file = new File([myBlob], filename, { type: 'application/pdf' });
+
+    // 2. Prüfen, ob die Web Share API mit Dateiversand unterstützt wird (iOS Safari unterstützt das hervorragend!)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                files: [file],
+                title: 'Arbeitszeiten PDF',
+                text: 'Hier ist dein generierter Monatsbericht.',
+            });
+            return; // Erfolgreich geteilt / zum Speichern angeboten
+        } catch (error) {
+            // Wenn der Nutzer den Teilen-Dialog abbricht, ist das ein "AbortError" -> ignorieren
+            if (error.name !== 'AbortError') {
+                console.error('Fehler beim Teilen:', error);
+            }
+            return;
+        }
+    }
+
+    // 3. Fallback für Desktop, Android oder ältere Browser (dein bisheriger Weg)
+    const blobUrl = URL.createObjectURL(myBlob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+}
+
+
 
 function filename(){
     return `Arbeitszeiten-${S.name.replace(/[^a-zA-Z0-9äöüÄÖÜß_-]+/g, '_')}-${$('#monthPick').value}.pdf`;
@@ -1118,6 +1289,10 @@ function initApp(){
     $('#weekDate').value = today;
     $('#monthPick').value = today.slice(0, 7);
 
+    if($('#pdfShowAllDays')) {
+            $('#pdfShowAllDays').checked = !!S.pdfShowAllDays;
+        }
+
     if(S.name) openApp();
 
     $('#setupBtn').onclick = () => {
@@ -1147,7 +1322,8 @@ function initApp(){
 
     $('#date').onchange = render;
     $('#weekDate').onchange = renderWeek;
-    $('#monthPick').onchange = renderMonth;
+    $('#monthPick').addEventListener('input', renderMonth);
+    $('#monthPick').addEventListener('change', renderMonth);
 
     if($('#monthWeeklyHours')) {
         $('#monthWeeklyHours').onchange = (e) => {
@@ -1240,6 +1416,11 @@ function initApp(){
             S.initialBalance = parseFloat($('#initialBalance').value) || 0;
         }
 
+        // Neu: Status der PDF-Checkbox beim Speichern sichern
+                if($('#pdfShowAllDays')) {
+                    S.pdfShowAllDays = $('#pdfShowAllDays').checked;
+                }
+
         S.quickShifts = S.quickShifts.map((_, idx) => {
             return {
                 name: $(`#shiftName_${idx}`)?.value || `Schicht ${idx+1}`,
@@ -1254,25 +1435,46 @@ function initApp(){
         alert('Einstellungen gespeichert.');
     };
 
-    $('#pdf').onclick = async () => {
-        let blob = pdfBlob();
-        let name = filename();
+$('#pdf').onclick = async () => {
+    let blob = pdfBlob();
+    let name = filename();
 
-        if (typeof AndroidDownload !== 'undefined') {
-            let reader = new FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = () => {
-                let base64Data = reader.result;
-                AndroidDownload.saveBlob(base64Data, name);
-            };
-        } else {
-            let a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = name;
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    // 1. Android-Spezifischer nativer Download
+    if (typeof AndroidDownload !== 'undefined') {
+        let reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => {
+            let base64Data = reader.result;
+            AndroidDownload.saveBlob(base64Data, name);
+        };
+        return;
+    }
+
+    // 2. iOS / Safari: Blob-URL erzeugen und direkt öffnen
+    // Auf iOS Safari kann der Nutzer im geöffneten PDF direkt auf das Teilen-Symbol tippen
+    // und dort "In Dateien sichern" auswählen.
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    let blobUrl = URL.createObjectURL(blob);
+
+    if (isIOS) {
+        // Auf iOS öffnen wir das PDF in einem neuen Tab/Fenster.
+        // Der Nutzer hat dort den nativen "Teilen" -> "In Dateien sichern"-Weg.
+        let newWindow = window.open(blobUrl, '_blank');
+        if (!newWindow) {
+            // Falls ein Pop-up-Blocker zuschlägt, als Fallback direkt im aktuellen Tab navigieren
+            window.location.href = blobUrl;
         }
-    };
+        return;
+    }
+
+    // 3. Fallback für Desktop und Standard-Browser (direkter Download)
+    let a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+};
 
     $('#share').onclick = async () => {
         let b = pdfBlob(), f = new File([b], filename(), { type: 'application/pdf' });
@@ -1420,4 +1622,19 @@ function showUpdateNotification() {
     // oder eine andere UI-Komponente triggern.
     console.log('neues Update verfügbar.');
   }
+}
+
+function toggleAndSaveSetting(key, value) {
+    // 1. Wert direkt im State speichern
+    S[key] = value;
+
+    // 2. Sofort in den Speicher schreiben (z.B. localStorage)
+    if (typeof save === 'function') {
+        save();
+    }
+
+    // 3. Falls gerade die Monatsansicht offen ist oder das PDF betroffen ist, optional neu rendern
+    if (typeof renderMonth === 'function') {
+        renderMonth();
+    }
 }

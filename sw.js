@@ -1,4 +1,4 @@
-const CACHE_NAME = 'meine-webapp-v4'; // Wichtig: Bei GitHub-Updates hier z.B. v2 draus machen!
+const CACHE_NAME = 'meine-webapp-v5'; // Wichtig: Bei GitHub-Updates hier z.B. v2 draus machen!
 
 const urlsToCache = [
   '/',
