@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.3</div>
+                <div class="status">● Offline-App · V1.3.1</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -215,14 +215,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             <label for="defaultWeeklyHours">Standard-Wochenstd.</label>
                             <input id="defaultWeeklyHours" type="number" step="0.5" min="0" value="20">
-
-                            <!-- Linksbuendige Checkbox für PDF-Einstellung -->
-                                    <div style="margin: 15px 0; width: 100%; text-align: left;">
-                                        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
-                                            <input type="checkbox" id="pdfShowAllDays" onchange="toggleAndSaveSetting('pdfShowAllDays', this.checked)">
-                                            Auf PDF auch freie Tage anzeigen
-                                        </label>
-                                    </div>
 
                             <label for="initialBalance" style="margin-top: 15px;">Start-Saldo / Korrektur (in Stunden)</label>
                                 <input id="initialBalance" type="number" step="0.25" placeholder="z. B. 12.5 oder -5">
@@ -817,6 +809,7 @@ function renderMonth(){
 function esc(s){
     return String(s).replace(/[\\()]/g, '\\$&').replace(/[ä]/g, 'ae').replace(/[ö]/g, 'oe').replace(/[ü]/g, 'ue').replace(/[Ä]/g, 'Ae').replace(/[Ö]/g, 'Oe').replace(/[Ü]/g, 'Ue').replace(/ß/g, 'ss');
 }
+
 function pdfBlob(){
     let mVal = $('#monthPick').value,
         [y, mo] = mVal.split('-').map(Number),
@@ -835,6 +828,10 @@ function pdfBlob(){
     let totalZaHours = 0;
     let hmap = holidays(y);
     let weekHasEntries = false;
+
+    // NEU: Holt den Status direkt von der Checkbox in der Monatsansicht (Fallback auf true, falls nicht vorhanden)
+    let showAllCheckbox = $('#showAllMonth');
+    let showAllDays = showAllCheckbox ? showAllCheckbox.checked : true;
 
     for(let i = 1; i <= days; i++){
         let ds = `${y}-${pad(mo)}-${pad(i)}`,
@@ -884,8 +881,8 @@ function pdfBlob(){
                     }
                 }
             });
-        } else if (S.pdfShowAllDays) {
-            // Wenn keine Einträge da sind, aber die Einstellung "Alle Tage anzeigen" aktiv ist:
+        } else if (showAllDays) {
+            // Wenn keine Einträge da sind, aber die Checkbox in der Monatsansicht aktiv ist:
             weekHasEntries = true;
             lines.push({
                 wd: wdStr,
@@ -1468,22 +1465,60 @@ $('#pdf').onclick = async () => {
         return;
     }
 
+    let blobURL = URL.createObjectURL(blob)
+
     // 3. Fallback für Desktop und Standard-Browser (direkter Download)
     let a = document.createElement('a');
     a.href = blobUrl;
     a.download = name;
+    document.body.appendChild(a); // Muss kurz ins DOM eingehängt werden
     a.click();
+    document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 };
 
-    $('#share').onclick = async () => {
-        let b = pdfBlob(), f = new File([b], filename(), { type: 'application/pdf' });
-        if (navigator.canShare?.({ files: [f] })) {
-            await navigator.share({ files: [f], title: 'Arbeitszeiten ' + S.name });
-        } else {
-            $('#pdf').click();
+$('#share').onclick = async () => {
+    let b = pdfBlob(), name = filename();
+
+    // 1. Android-App (WebView) – nutzt deine native Kotlin-Brücke zum Teilen oder Speichern
+    if (typeof AndroidDownload !== 'undefined') {
+        let reader = new FileReader();
+        reader.readAsDataURL(b);
+        reader.onloadend = () => {
+            if (typeof AndroidDownload.shareBlob === 'function') {
+                AndroidDownload.shareBlob(reader.result, name);
+            } else {
+                AndroidDownload.saveBlob(reader.result, name);
+            }
+        };
+        return;
+    }
+
+    // 2. Web Share API (Chrome, Safari, Edge etc.)
+    if (navigator.share) {
+        try {
+            let f = new File([b], name, { type: 'application/pdf' });
+            if (!navigator.canShare || navigator.canShare({ files: [f] })) {
+                await navigator.share({
+                    files: [f],
+                    title: 'Arbeitszeiten ' + S.name,
+                    text: 'Hier ist meine Arbeitszeitübersicht'
+                });
+                return; // Erfolgreich geteilt, fertig!
+            }
+        } catch (err) {
+            // Wenn der Nutzer das Teilen-Menü abbricht, ist das kein technischer Fehler
+            if (err.name !== 'AbortError') {
+                console.error('Fehler beim Teilen:', err);
+            }
+            return;
         }
-    };
+    }
+
+    // 3. Fallback für Firefox & Browser ohne Datei-Teilen (Sowohl Share nicht da -> ab zu PDF)
+    // Löst direkt den regulären PDF-Download aus, damit der Nutzer die Datei sicher erhält
+    $('#pdf').click();
+};
 
     $('#backup').onclick = () => {
         const exportPayload = {
