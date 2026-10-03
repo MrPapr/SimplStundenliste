@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.3.1</div>
+                <div class="status">● Offline-App · V1.3.2</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -136,23 +136,25 @@ document.addEventListener("DOMContentLoaded", () => {
             <div>
                 <label for="monthPick">Monat</label>
                 <input id="monthPick" type="month">
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; padding-bottom: 4px;">
-                <input type="checkbox" id="showAllMonth" checked onchange="renderMonth()">
-                <label for="showAllMonth" style="font-weight: normal; margin-bottom: 0; cursor: pointer;">Alle Tage anzeigen</label>
+                <label for="monthWeeklyHours">Wochenstunden für diesen Monat</label>
+                <input id="monthWeeklyHours" type="number" step="0.5" min="0" value="20">
             </div>
         </div>
 
         <!-- Darunter: Wochenstunden und PDF-Buttons nebeneinander -->
         <div class="between" style="align-items: flex-end; gap: 10px; margin-bottom: 15px;">
-            <div style="flex: 1;">
-                <label for="monthWeeklyHours">Wochenstunden für diesen Monat</label>
-                <input id="monthWeeklyHours" type="number" step="0.5" min="0" value="20">
-            </div>
+
             <div class="actions" style="display: flex; gap: 8px;">
                 <button id="pdf" class="primary">PDF erstellen</button>
                 <button id="share">PDF teilen</button>
+                <div class="custom-checkbox-wrapper">
+                            <input type="checkbox" id="showAllMonth" checked onchange="renderMonth()">
+                            <label for="showAllMonth" style="styled-label">Alle Tage anzeigen</label>
+                        </div>
+
             </div>
+            <a> * Richtigkeit des PDF selbst nachrechnen! Fehler nicht ausgeschlossen.</a>
+
         </div>
 
         <h2 id="monthTotal"></h2>
