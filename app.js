@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.3.2</div>
+                <div class="status">● Offline-App · V1.3.3</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -1132,6 +1132,12 @@ function parseDateString(dateStr) {
 
 function changeMonth(direction) {
     S.currentMonthOffset += direction;
+
+    // Zustand speichern, falls die save()-Funktion global verfügbar ist
+        if (typeof save === 'function') {
+            save();
+        }
+
     renderScheduleSection();
 }
 
@@ -1215,6 +1221,10 @@ function renderScheduleSection() {
     let html = `<table style="width: 100%; border-collapse: collapse;">`;
     let lastWeekNo = null;
 
+    // Heutiges Datum für den Vergleich im ISO-Format ermitteln
+    let todayObj = new Date();
+    let todayIso = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
+
     groupedSchedule.forEach((group, index) => {
         let itemDate = parseDateString(group.dateStr);
         let currentWeekNo = itemDate ? getWeekNumber(itemDate) : null;
@@ -1230,6 +1240,11 @@ function renderScheduleSection() {
         let dayNum = itemDate ? String(itemDate.getUTCDate()).padStart(2, '0') : '';
         let isoStr = `${itemYear}-${m}-${dayNum}`;
 
+        // 💡 HEUTIGEN TAG PRÜFEN & HIGHLIGHT-STYLE FESTLEGEN
+        let isToday = (isoStr === todayIso);
+        let rowHighlightStyle = isToday ? 'background-color: var(--accent-bg, rgba(255, 204, 0, 0.12)); border-left: 4px solid var(--accent-color, #ffcc00);' : '';
+        let todayBadge = isToday ? `<span style="background: var(--accent-color, #ffcc00); color: #000; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px; vertical-align: middle;">HEUTE</span>` : '';
+
         let holidayName = holidayList[isoStr];
         let isSunday = itemDate ? itemDate.getUTCDay() === 0 : false;
 
@@ -1237,7 +1252,7 @@ function renderScheduleSection() {
         let dateColorStyle = isSpecialDay ? 'color: #ff5252;' : '';
         let specialInfoHTML = holidayName ? `<br><small style="color: ${isSpecialDay ? '#ff5252' : 'var(--text-muted)'}; font-style: italic;">${holidayName}</small>` : '';
 
-        // 💡 DEUTLICHER WOCHENWECHSEL: Linie + optionaler KW-Hinweis ab dem 2. Eintrag einer neuen Woche
+        // Wochenwechsel-Linie + KW-Hinweis
         if (index > 0 && currentWeekNo !== lastWeekNo) {
             html += `<tr><td colspan="2" style="padding: 24px 0 12px 0;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -1247,7 +1262,6 @@ function renderScheduleSection() {
                 </div>
             </td></tr>`;
         } else if (index === 0 && currentWeekNo !== null) {
-            // Optional: Auch ganz oben im Monat dezent die KW anzeigen, wenn gewünscht
             html += `<tr><td colspan="2" style="padding: 4px 0 8px 0;">
                 <span style="font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">KW ${currentWeekNo}</span>
             </td></tr>`;
@@ -1266,9 +1280,10 @@ function renderScheduleSection() {
             `;
         });
 
-        html += `<tr style="border-bottom: 1px solid var(--border-color);">
+        // Zeile mit integriertem `rowHighlightStyle` und `todayBadge`
+        html += `<tr style="border-bottom: 1px solid var(--border-color); ${rowHighlightStyle}">
             <td style="padding: 10px 8px; width: 35%; vertical-align: top;">
-                <div style="font-weight: bold; ${dateColorStyle}">${weekdayName}, ${formatDisplayDate(group.dateStr)}</div>
+                <div style="font-weight: bold; ${dateColorStyle}">${weekdayName}, ${formatDisplayDate(group.dateStr)}${todayBadge}</div>
                 ${specialInfoHTML}
             </td>
             <td style="padding: 10px 8px; vertical-align: top;">
@@ -1282,6 +1297,9 @@ function renderScheduleSection() {
 
 function initApp(){
     load();
+
+    S.currentMonthOffset = 0;
+
     fillTimeSelects();
     let today = iso(new Date());
     $('#date').value = today;
