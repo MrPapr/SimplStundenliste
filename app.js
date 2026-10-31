@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.3.3</div>
+                <div class="status">● Offline-App · V1.3.4</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -872,7 +872,8 @@ function pdfBlob(){
                 } else if (item.start && item.end) {
                     let base = hours(item.start, item.end);
                     totalIstHours += base;
-                    let endDisplay = item.end + (item.end < item.start ? ' (+1)' : '');
+                    //let endDisplay = item.end + (item.end < item.start ? ' (+1)' : '');
+                    let endDisplay = item.end + (item.end < item.start ? '' : '');
                     let timeStr = `${item.start} - ${endDisplay}`;
                     lines.push({ wd: wdStr, date: dateStr, col2: timeStr, col3: ht(base), note: noteStr });
 
