@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </header>
 
-                <div class="status">● Offline-App · V1.3.4</div>
+                <div class="status">● Offline-App · V1.3.5</div>
 
                 <nav>
                     <button data-v="day" class="active">Tag</button>
@@ -920,7 +920,7 @@ function pdfBlob(){
     }
 
     pageChunks.forEach((chunk, p) => {
-        let s = `BT /F1 15 Tf 45 800 Td (${esc('Arbeitszeiten Simplicissimus')}) Tj /F1 11 Tf 0 -22 Td (${esc('Mitarbeiter: ' + S.name)}) Tj 0 -16 Td (${esc('Monat: ' + monthYearStr)}) Tj`;
+        let s = `BT /F1 15 Tf 45 800 Td (${esc('Arbeitszeiten Simplicissimus')}) Tj /F1 11 Tf 0 -22 Td (${esc('Name: ' + S.name)}) Tj 0 -16 Td (${esc('Monat: ' + monthYearStr)}) Tj`;
 
         let startY = 720;
 
